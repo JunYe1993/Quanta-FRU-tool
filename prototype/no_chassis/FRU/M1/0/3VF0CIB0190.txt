@@ -1,0 +1,28 @@
+--------------------------------------------------
+Board Info Area
+--------------------------------------------------
+     M/B Language Code          = "19h"
+     M/B Manufacturer Date/Time = ""
+     M/B Manufacturer Name      = "Quanta"
+     M/B Product Name           = "BMC Storage Module DVT"
+     M/B Serial Number          = ""
+     M/B Part Number            = "3VF0CIB0190"
+     M/B Fru File ID            = "FRU Version 0.04"
+     M/B Custom Field 1         = "09-001562"
+     M/B Custom Field 2         = ""
+     M/B Custom Field 3         = ""
+--------------------------------------------------
+Product Info Area
+--------------------------------------------------
+     PD Language Code           = "19h"
+     PD Manufacturer Name       = "Quanta"
+     PD Product Name            = "Grand Teton"
+     PD Part/Model Number       = ""
+     PD Version                 = ""
+     PD Serial Number           = ""
+     PD Asset Tag               = ""
+     PD Fru File ID             = ""
+     PD Custom Field 1          = ""
+     PD Custom Field 2          = ""
+     PD Custom Field 3          = ""
+--------------------------------------------------

@@ -1,0 +1,40 @@
+bmcfwtool
+-----------
+
+---------------------------------
+Revision: 0.10.02
+Date: 09/30/2015
+---------------------------------
+ - Add sub-function, "bin", for "fru" function to generate FRU data only. 
+
+---------------------------------
+Revision: 0.10.00
+Date: 05/28/2015
+---------------------------------
+ - To get FRU size from BMC. (max FRU size supported is 2048)
+ - To support OEM Type ID (0xC0 to 0xFF) of Multi-Record Info.
+
+---------------------------------
+Revision: 0.09.03
+Date: 01/20/2015
+---------------------------------
+ - To support generate Device GUID by Board Serial Number of FRU.
+
+---------------------------------
+Revision: 0.09.02
+Date: 11/14/2014
+---------------------------------
+ - Rebuild without lanplus supported to avoid using libcrypto.so.
+ - Rebuild on CentOS 5.2 for glibc compatibility.
+
+---------------------------------
+Revision: 0.09.01
+Date: 10/25/2014
+---------------------------------
+ - Add 10ms delay for "eeprom write" function to wait eeprom finish writing.
+
+---------------------------------
+Revision: 0.08.02
+Date: 9/17/2013
+---------------------------------
+ - Add "eeprom" function.

@@ -1,0 +1,37 @@
+===============================================================
+    GT FRU Release Note v0.04
+===============================================================
+Version: v0.04
+Date: 2022/09/08
+Hardware Platform: Grandteton MB
+
+Note:
+  1. "FRU" folder: The FRU files for specific boards.
+
+  2. "linux" folder: The utility and scripts for programming FRU and System GUID
+                     on Linux OS (CentOS 6.4 x86_64 fbk kernel 3.10.39-31_fbk12_01013_ga2de9bf):
+     (1) FRU_Writer: The scripts of programming FRU for specific boards.
+         i. M1: For M1 stage.
+            3KF0TMA0000.sh: MB
+         i. M3: For M3 stage.
+            3KF0TMA0000.sh: MB
+			
+Example procedure:
+  1. Programming FRU for MB M1:
+     (1) Change directory to "linux/FRU_Writer/PVT/M1"
+     (2) Execute "./3KF0TMA0000.sh mb.bin"
+     (3) scp mb.bin into openbmc
+     (4) Execute "fruid-util bmc --write mb.bin" in openbmc
+
+  2. Programming FRU for MB M3:
+     (1) Change directory to "linux/FRU_Writer/PVT/M3"
+     (2) Execute "./3KF0TMA0000.sh mb.bin"
+     (3) scp mb.bin into openbmc
+     (4) Execute "fruid-util bmc --write mb.bin" in openbmc
+	 
+Changed/Added:
+  1. Add FRU files for M1 and M3:
+     (1) 3KF0TMA0000
+
+
+

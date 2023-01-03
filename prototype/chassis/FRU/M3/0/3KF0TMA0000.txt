@@ -1,0 +1,36 @@
+--------------------------------------------------
+Chassis Info Area
+--------------------------------------------------
+     Chassis Type               = "17h"
+     Chassis Part Number        = ""
+     Chassis Serial Number      = ""
+     Chassis Custom Field 1     = "CPU serial"
+     Chassis Custom Field 2     = "CPU serial"
+--------------------------------------------------
+Board Info Area
+--------------------------------------------------
+     M/B Language Code          = "19h"
+     M/B Manufacturer Date/Time = ""
+     M/B Manufacturer Name      = "Quanta"
+     M/B Product Name           = "Grand Teton MB DVT"
+     M/B Serial Number          = ""
+     M/B Part Number            = "3KF0TMA0000"
+     M/B Fru File ID            = "FRU Version 0.04"
+     M/B Custom Field 1         = "02-000538"
+     M/B Custom Field 2         = ""
+     M/B Custom Field 3         = ""
+--------------------------------------------------
+Product Info Area
+--------------------------------------------------
+     PD Language Code           = "19h"
+     PD Manufacturer Name       = "Quanta"
+     PD Product Name            = "Grand Teton"
+     PD Part/Model Number       = ""
+     PD Version                 = ""
+     PD Serial Number           = ""
+     PD Asset Tag               = ""
+     PD Fru File ID             = ""
+     PD Custom Field 1          = ""
+     PD Custom Field 2          = ""
+     PD Custom Field 3          = ""
+--------------------------------------------------
