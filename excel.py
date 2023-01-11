@@ -1,4 +1,4 @@
-# Import the xlrd module
+#!/bin/python3
 import sys, re
 import xlrd
 import json
@@ -84,6 +84,8 @@ folder_name_table = {
     "Grand Teton Vertical PDB"               : "VPDB",
     "Grand Teton HGX PDB"                    : "HPDB",
     "Grand Teton FAN Board"                  : "FAN_BP",
+    "Grand Teton Vertical PDB_Brick"         : "VPDB_Brick",
+    "Grand Teton Vertical PDB_Discrete"      : "VPDB_Discrete",
 }
 
 def parentheses_off(string):
@@ -195,7 +197,7 @@ if __name__ == "__main__":
 
     # Open the excel
     workbook = xlrd.open_workbook(sys.argv[1])
-    worksheet = workbook.sheet_by_index(0)
+    worksheet = workbook.sheet_by_index(2)
 
     # Check data
     check_row_name(worksheet)

@@ -1,0 +1,3 @@
+#!/bin/python3
+PROJECT_NAME = "GT"
+DEVELOP_STAGE = "PVT"

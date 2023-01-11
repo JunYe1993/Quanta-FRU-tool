@@ -5,6 +5,8 @@ from distutils.dir_util import copy_tree
 
 import config as config_reader
 from excel import parentheses_off
+from toolconfig import PROJECT_NAME
+from toolconfig import DEVELOP_STAGE
 
 showMsgEnable = False
 FRU_VERSION_KEY = "M/B Fru File ID"
@@ -17,9 +19,9 @@ def showMsg(msg, enable=showMsgEnable):
 
 def folder(config):
 
-    # remove folder GT_***_FRU_v***
+    # remove folder (PROJECT_NAME)_***_FRU_v***
     for raw in glob.glob("*"):
-        pattern = r'GT_(.*)_FRU_v[0-9]+'
+        pattern = PROJECT_NAME + r'_(.*)_FRU_v[0-9]+'
         x = re.search(pattern, raw)
         if os.path.isdir(raw) and x != None:
             command = "rm -r %s" % raw
@@ -29,15 +31,20 @@ def folder(config):
     # copy folder from prototype
     for name in config:
         folder = "prototype/chassis" if config[name]["Chassis Info"] else "prototype/no_chassis"
-        targetname = "GT_%s_FRU_v001" % name
+        targetname = "%s_%s_FRU_v001" % (PROJECT_NAME, name)
+        # copy
         command = "cp -r %s %s" % (folder, targetname)
+        process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+        output, error = process.communicate()
+        # set bmcfwtool
+        command = "chmod 755 %s" % (targetname+"/linux/bmcfwtool")
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
         output, error = process.communicate()
 
 def get_folder():
     folders = {}
     for raw in glob.glob("*"):
-        pattern = r'GT_(.+)_FRU_v[0-9]+'
+        pattern = PROJECT_NAME + r'_(.+)_FRU_v[0-9]+'
         x = re.search(pattern, raw)
         if (os.path.isdir(raw) and x):
             folders[x.group(1)] = raw
@@ -300,7 +307,7 @@ def update(config):
 def get_zip():
     # get file name
     filedate = date.today().strftime("%Y%m%d")
-    filename = "GT_DVT_" + filedate[2:] + ".zip"
+    filename = "%s_%s_%s.zip" % (PROJECT_NAME, DEVELOP_STAGE, filedate[2:])
 
     zipcommand = "zip -r %s . \
                 -x *.py \
@@ -308,13 +315,13 @@ def get_zip():
                 -x *.zip \
                 -x __pycache__* \
                 -x prototype* \
+                -x .git* \
+                -x ICT* \
                 " %  filename
     process = subprocess.Popen(zipcommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
-#
-# zip -r GT_EVT_220518.zip . -x *.py -x *.json -x __*/ -x *.pyc -x *zip
-#
+
 if __name__ == "__main__":
     folder(config_reader.read("excel_raw_folder.json"))
     update(config_reader.read_config("excel_raw_output.json"))
-    # get_zip()
+    get_zip()
