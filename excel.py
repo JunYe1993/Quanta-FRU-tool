@@ -2,6 +2,7 @@
 import sys, re
 import xlrd
 import json
+from toolconfig import FRU_SUB_FOLDER_KEY
 
 row_check_table = [
     "Organization",
@@ -86,6 +87,10 @@ folder_name_table = {
     "Grand Teton FAN Board"                  : "FAN_BP",
     "Grand Teton Vertical PDB_Brick"         : "VPDB_Brick",
     "Grand Teton Vertical PDB_Discrete"      : "VPDB_Discrete",
+    "Grand Teton Expander BD\n(PVT1)"        : "SWB(PVT1)",
+    "Grand Teton Expander BD\n(PVT2)"        : "SWB(PVT2)",
+    "Grand Teton HGX PDB\n(PVT2)"            : "HPDB(PVT2)",
+    "Grand Teton Vertical PDB (PVT2)"        : "VPDB(PVT2)",
 }
 
 def parentheses_off(string):
@@ -169,21 +174,31 @@ def output_json(worksheet):
         target_folder[folder_name]["Chassis Info"] = True
 
         folder_data = {}
+        folder_data[FRU_SUB_FOLDER_KEY] = worksheet.cell_value(1, i).strip().replace(u'\xa0', u' ')
         for j in range(2, worksheet.nrows):
             value = worksheet.cell_value(j, i).strip().replace(u'\xa0', u' ')
             value = value_check(value)
 
+            # decide what prototype should be used.
             if value == "no chassis information":
                 target_folder[folder_name]["Chassis Info"] = False
                 value = ""
 
+            # there may some conments are under the chart, should be ignored
             if (j-2 != len(row_json_table)):
+                # some column set to be ignored
                 if row_json_table[j-2] != "":
                     folder_data[row_json_table[j-2]] = value
             else:
                 break
 
-        output[folder_name] = folder_data
+        # there might be more than one row which has the same board name.
+        # it meant to be merge, so the data should be the same except "Board Part Number"
+        if folder_name in output:
+            output[folder_name][FRU_SUB_FOLDER_KEY] += "\n" + folder_data[FRU_SUB_FOLDER_KEY]
+            output[folder_name]["Board Part Number"] += "\n" + folder_data["Board Part Number"]
+        else:
+            output[folder_name] = folder_data
 
     with open ("excel_raw_output.json", 'w', encoding='utf-8') as json_file:
         json.dump(output, json_file, ensure_ascii=False, indent=4)
@@ -197,7 +212,7 @@ if __name__ == "__main__":
 
     # Open the excel
     workbook = xlrd.open_workbook(sys.argv[1])
-    worksheet = workbook.sheet_by_index(2)
+    worksheet = workbook.sheet_by_index(0)
 
     # Check data
     check_row_name(worksheet)

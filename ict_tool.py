@@ -53,7 +53,6 @@ def get_bin(folder):
         proc.stdin.write('12345\n'.encode())
         proc.stdin.close()
         proc.wait()
-        binfiles
         binfiles[root+".bin"] = path+root+".bin"
 
     os.chdir('../../../../')

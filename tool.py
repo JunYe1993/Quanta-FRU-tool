@@ -7,10 +7,12 @@ import config as config_reader
 from excel import parentheses_off
 from toolconfig import PROJECT_NAME
 from toolconfig import DEVELOP_STAGE
+from toolconfig import FRU_VERSION_KEY
+from toolconfig import FRU_SUB_FOLDER_KEY
+from toolconfig import FRU_PART_NUMBER_KEY
+from toolconfig import CHASSIS_QPN_MARK
 
 showMsgEnable = False
-FRU_VERSION_KEY = "M/B Fru File ID"
-PART_NUMBER_KEY = "M/B Part Number"
 MODES = ["M1/", "M3/"]
 
 def showMsg(msg, enable=showMsgEnable):
@@ -60,10 +62,10 @@ def get_linux_scripts(folder, mode=None):
     return glob.glob(os.path.join(path, "*sh"), recursive=True)
 
 def get_part_numbers(fru_config={}):
-    if fru_config.get(PART_NUMBER_KEY):
-        return fru_config[PART_NUMBER_KEY]
+    if fru_config.get(FRU_PART_NUMBER_KEY):
+        return fru_config[FRU_PART_NUMBER_KEY]
     else:
-        showMsg("Can't find %s in fru_config" % PART_NUMBER_KEY, True)
+        showMsg("Can't find %s in fru_config" % FRU_PART_NUMBER_KEY, True)
         exit()
 
 def match_file_number(folder, fru_config):
@@ -126,7 +128,7 @@ def update_txt_files(folder, fru_config):
         for file in files:
             # update content
             temp_FruConfig = fru_config.copy()
-            temp_FruConfig[PART_NUMBER_KEY] = fru_config[PART_NUMBER_KEY][part_number_index]
+            temp_FruConfig[FRU_PART_NUMBER_KEY] = fru_config[FRU_PART_NUMBER_KEY][part_number_index]
             context = ""
             isupdated = False
             for line in open(file, "r"):
@@ -140,7 +142,7 @@ def update_txt_files(folder, fru_config):
             part_number_index += 1
 
             # update file name
-            newFileName = os.path.dirname(file)+"/"+temp_FruConfig[PART_NUMBER_KEY]+".txt"
+            newFileName = os.path.dirname(file)+"/"+temp_FruConfig[FRU_PART_NUMBER_KEY]+".txt"
             os.rename(file, newFileName)
 
             # show message
@@ -171,7 +173,6 @@ def update_ini_data(file, line, update_list={}):
 def update_ini_files(folder, fru_config):
 
     files = get_ini_files(folder, fru_config["mode"])
-    files.sort()
     for file in files:
         context = ""
         isupdated = False
@@ -233,27 +234,31 @@ def update_release_note(folder, fru_config):
         msg = " updated." if isupdated else " already updated."
         showMsg(note + " > data" + msg, isupdated)
 
-def update_folder_part_number(folder, fru_config):
-
+def update_script(folder, fru_config):
     # update file name folder/linux/**/*.sh
     for mode in MODES:
         pn_index = 0
         for script in get_linux_scripts(folder, mode):
-            new_name = os.path.dirname(script)+"/"+fru_config[PART_NUMBER_KEY][pn_index]+".sh"
+            new_content = ""
+            for line in open(script, "r"):
+                new_content += line.replace(CHASSIS_QPN_MARK, fru_config[FRU_SUB_FOLDER_KEY][pn_index])
+            with open(script, "w") as s:
+                s.write(new_content)
+
+            new_name = os.path.dirname(script)+"/"+fru_config[FRU_PART_NUMBER_KEY][pn_index]+".sh"
             os.rename(script, new_name)
             pn_index += 1
 
+def update_folder_name(folder, fru_config):
     # update folder name folder/FRU/**/*
     folder_names = get_txt_files(folder)
-    folder_names.sort()
     for name in folder_names:
-        path, file = os.path.split(name)
-        null, path = os.path.split(path)
-        file, null = os.path.splitext(file)
-        if file != path:
-            old = os.path.dirname(name)
-            new = os.path.dirname(old)+"/"+file
-            os.rename(old, new)
+        index, file = os.path.split(name)
+        null, index = os.path.split(index)
+        index = int(index) % len(fru_config[FRU_SUB_FOLDER_KEY])
+        old = os.path.dirname(name)
+        new = os.path.dirname(old)+"/"+fru_config[FRU_SUB_FOLDER_KEY][index]
+        os.rename(old, new)
 
 def get_fru_version(config={}):
     if config.get(FRU_VERSION_KEY):
@@ -299,7 +304,8 @@ def update(config):
             update_ini_files(folders[FRU], config["m1_ini"][FRU])
             update_ini_files(folders[FRU], config["m3_ini"][FRU])
             update_release_note(folders[FRU], config["txt"][FRU])
-            update_folder_part_number(folders[FRU], config["txt"][FRU])
+            update_script(folders[FRU], config["txt"][FRU])
+            update_folder_name(folders[FRU], config["txt"][FRU])
             update_folder_fru_version(folders[FRU], get_fru_version(config["txt"][FRU]))
         # break
 

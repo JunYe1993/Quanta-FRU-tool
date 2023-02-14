@@ -1,7 +1,9 @@
 import json
 from excel import parentheses_off
+from toolconfig import FRU_SUB_FOLDER_KEY
 
 key_change_table = {
+    FRU_SUB_FOLDER_KEY      : FRU_SUB_FOLDER_KEY,
     "Chassis Type"          : "Chassis Type",
     "Chassis Part Number"   : "Chassis Part Number",
     "Chassis Serial Number" : "Chassis Serial Number",
@@ -135,9 +137,17 @@ def get_value(key, value):
         return parentheses_off(value)
 
     elif key == "M/B Part Number":
-        # split by \n
+        # Board Part Number: split by \n
         arr = value.splitlines()
-        arr.sort()
+        for i in range(0, len(arr)):
+            arr[i] = arr[i].strip()
+        return arr
+
+    elif key == FRU_SUB_FOLDER_KEY:
+        # Sub Folder Name: split by \n
+        arr = value.splitlines()
+        for i in range(0, len(arr)):
+            arr[i] = arr[i].strip()
         return arr
 
     else:
