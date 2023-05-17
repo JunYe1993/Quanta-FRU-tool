@@ -89,8 +89,12 @@ folder_name_table = {
     "Grand Teton Vertical PDB_Discrete"      : "VPDB_Discrete",
     "Grand Teton Expander BD\n(PVT1)"        : "SWB(PVT1)",
     "Grand Teton Expander BD\n(PVT2)"        : "SWB(PVT2)",
+    "Grand Teton Vertical PDB\n(PVT1)"       : "VPDB(PVT1)",
+    "Grand Teton Vertical PDB\n(PVT2)"       : "VPDB(PVT2)",
+    "Grand Teton Vertical PDB\n(PVT3)"       : "VPDB(PVT3)",
+    "Grand Teton HGX PDB\n(PVT1)"            : "HPDB(PVT1)",
     "Grand Teton HGX PDB\n(PVT2)"            : "HPDB(PVT2)",
-    "Grand Teton Vertical PDB (PVT2)"        : "VPDB(PVT2)",
+    "Grand Teton HGX PDB\n(PVT3)"            : "HPDB(PVT3)",
 }
 
 def parentheses_off(string):
