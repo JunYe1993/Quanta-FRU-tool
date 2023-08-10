@@ -89,14 +89,16 @@ folder_name_table = {
     "Grand Teton FAN Board"                  : "FAN_BP",
     "Grand Teton Vertical PDB_Brick"         : "VPDB_Brick",
     "Grand Teton Vertical PDB_Discrete"      : "VPDB_Discrete",
-    "Grand Teton Expander BD\n(PVT1)"        : "SWB(PVT1)",
-    "Grand Teton Expander BD\n(PVT2)"        : "SWB(PVT2)",
-    "Grand Teton Vertical PDB\n(PVT1)"       : "VPDB(PVT1)",
-    "Grand Teton Vertical PDB\n(PVT2)"       : "VPDB(PVT2)",
-    "Grand Teton Vertical PDB\n(PVT3)"       : "VPDB(PVT3)",
-    "Grand Teton HGX PDB\n(PVT1)"            : "HPDB(PVT1)",
-    "Grand Teton HGX PDB\n(PVT2)"            : "HPDB(PVT2)",
-    "Grand Teton HGX PDB\n(PVT3)"            : "HPDB(PVT3)",
+    "Grand Teton Expander BD (PVT1)"         : "SWB(PVT1)",
+    "Grand Teton Expander BD (PVT2)"         : "SWB(PVT2)",
+    "Grand Teton Vertical PDB (PVT1)"        : "VPDB(PVT1)",
+    "Grand Teton Vertical PDB (PVT2)"        : "VPDB(PVT2)",
+    "Grand Teton Vertical PDB (PVT3)"        : "VPDB(PVT3)",
+    "Grand Teton Vertical PDB (PVT4)"        : "VPDB(PVT4)",
+    "Grand Teton HGX PDB (PVT1)"             : "HPDB(PVT1)",
+    "Grand Teton HGX PDB (PVT2)"             : "HPDB(PVT2)",
+    "Grand Teton HGX PDB (PVT3)"             : "HPDB(PVT3)",
+    "Grand Teton HGX PDB (PVT4)"             : "HPDB(PVT4)",
 }
 
 def parentheses_off(string):
@@ -173,8 +175,12 @@ def output_json(worksheet):
     output = {}
     target_folder = {}
     for i in range(1, worksheet.ncols):
-        # folder = parentheses_off(worksheet.cell_value(0, i))
+
+        # remove full-width space
         folder = worksheet.cell_value(0, i).strip().replace(u'\xa0', u' ')
+        # remove typesetting space, tab, and newline characters
+        folder = re.sub(r'\s+', ' ', folder)
+
         folder_name = folder_name_table[folder]
         target_folder[folder_name] = {}
         target_folder[folder_name]["Chassis Info"] = True
@@ -218,7 +224,7 @@ if __name__ == "__main__":
 
     # Open the excel
     workbook = xlrd.open_workbook(sys.argv[1])
-    worksheet = workbook.sheet_by_index(1)
+    worksheet = workbook.sheet_by_index(0)
 
     # Check data
     check_row_name(worksheet)
