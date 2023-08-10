@@ -1,6 +1,7 @@
-import json
+import re, json
 from excel import parentheses_off
 from toolconfig import FRU_SUB_FOLDER_KEY
+from toolconfig import FRU_PART_NUMBER_KEY
 
 key_change_table = {
     FRU_SUB_FOLDER_KEY      : FRU_SUB_FOLDER_KEY,
@@ -20,6 +21,7 @@ key_change_table = {
     "Board Custom Data 1"   : "M/B Custom Field 1",
     "Board Custom Data 2"   : "M/B Custom Field 2",
     "Board Custom Data 3"   : "M/B Custom Field 3",
+    "Board Custom Data 4"   : "M/B Custom Field 4",
 
     "Product Language Code" : "PD Language Code",
     "Product Manufacturer"  : "PD Manufacturer",
@@ -33,19 +35,6 @@ key_change_table = {
     "Product Custom Data 2" : "PD Custom Field 2",
     "Product Custom Data 3" : "PD Custom Field 3",
 }
-
-# key_block_table = {
-#     "M/B Custom Field 2",
-#     "M/B Custom Field 3",
-#     "PD Part Number",
-#     "PD Version",
-#     "PD Serial Number",
-#     "PD Asset Tag",
-#     "PD Fru File ID",
-#     "PD Custom Field 1",
-#     "PD Custom Field 2",
-#     "PD Custom Field 3",
-# }
 
 ini_key_m1_table = {
     "mode":"M1",
@@ -67,6 +56,7 @@ ini_key_m1_table = {
     "M/B Custom Field 1(Y/N)"           : "N",
     "M/B Custom Field 2(Y/N)"           : "Y",
     "M/B Custom Field 3(Y/N)"           : "Y",
+    "M/B Custom Field 4(Y/N)"           : "N",
     "PD Manufacturer Name(Y/N)"         : "N",
     "PD Product Name(Y/N)"              : "N",
     "PD Part/Model Number(Y/N)"         : "N",
@@ -99,6 +89,7 @@ ini_key_m3_table = {
     "M/B Custom Field 1(Y/N)"           : "N",
     "M/B Custom Field 2(Y/N)"           : "N",
     "M/B Custom Field 3(Y/N)"           : "N",
+    "M/B Custom Field 4(Y/N)"           : "N",
     "PD Manufacturer Name(Y/N)"         : "N",
     "PD Product Name(Y/N)"              : "N",
     "PD Part/Model Number(Y/N)"         : "Y",
@@ -136,19 +127,16 @@ def get_value(key, value):
         # Remove "(english)"
         return parentheses_off(value)
 
-    elif key == "M/B Part Number":
+    elif key == FRU_PART_NUMBER_KEY or key == FRU_SUB_FOLDER_KEY:
         # Board Part Number: split by \n
         arr = value.splitlines()
+        ret = []
         for i in range(0, len(arr)):
-            arr[i] = arr[i].strip()
-        return arr
-
-    elif key == FRU_SUB_FOLDER_KEY:
-        # Sub Folder Name: split by \n
-        arr = value.splitlines()
-        for i in range(0, len(arr)):
-            arr[i] = arr[i].strip()
-        return arr
+            pattern = r'([0-9A-Z]{11})'
+            x = re.search(pattern, arr[i])
+            if x != None:
+                ret.append(x.group(1))
+        return ret
 
     else:
         ini_key = key + "(Y/N)"
@@ -157,9 +145,6 @@ def get_value(key, value):
                 ini_key_m3_table[ini_key] == "Y":
                 if value not in tags:
                     value = ""
-        # if key in key_block_table:
-        #     if value not in tags:
-        #         value = ""
         return value
 
 def key_change(config):

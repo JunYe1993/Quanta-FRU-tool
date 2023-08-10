@@ -126,12 +126,15 @@ def update_txt_files(folder, fru_config):
         files.sort()
 
         for file in files:
+            if len(fru_config[FRU_PART_NUMBER_KEY]) == 0:
+                continue
             # update content
             temp_FruConfig = fru_config.copy()
             temp_FruConfig[FRU_PART_NUMBER_KEY] = fru_config[FRU_PART_NUMBER_KEY][part_number_index]
             context = ""
             isupdated = False
             for line in open(file, "r"):
+                print(temp_FruConfig)
                 newline = update_txt_data(file, line, temp_FruConfig)
                 if line != newline:
                     line = newline

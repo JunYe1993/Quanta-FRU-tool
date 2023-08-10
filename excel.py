@@ -23,6 +23,7 @@ row_check_table = [
     "Board  Custom Data 1",
     "Board  Custom Data 2",
     "Board  Custom Data 3",
+    "Board  Custom Data 4",
     "Product Info Area",
     "Language Code",
     "Product Manufacturer",
@@ -56,6 +57,7 @@ row_json_table = [
     "Board Custom Data 1",
     "Board Custom Data 2",
     "Board Custom Data 3",
+    "Board Custom Data 4",
     "",
     "Product Language Code",
     "Product Manufacturer",
@@ -216,7 +218,7 @@ if __name__ == "__main__":
 
     # Open the excel
     workbook = xlrd.open_workbook(sys.argv[1])
-    worksheet = workbook.sheet_by_index(0)
+    worksheet = workbook.sheet_by_index(1)
 
     # Check data
     check_row_name(worksheet)

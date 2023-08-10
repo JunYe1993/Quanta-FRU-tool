@@ -11,6 +11,7 @@ Board Info Area
      M/B Custom Field 1         = "09-001562"
      M/B Custom Field 2         = ""
      M/B Custom Field 3         = ""
+     M/B Custom Field 4         = ""
 --------------------------------------------------
 Product Info Area
 --------------------------------------------------
