@@ -21,9 +21,9 @@ def showMsg(msg, enable=showMsgEnable):
 
 def folder(config):
 
-    # remove folder (PROJECT_NAME)_***_FRU_v***
+    # remove folder _***_FRU_v***
     for raw in glob.glob("*"):
-        pattern = PROJECT_NAME + r'_(.*)_FRU_v[0-9]+'
+        pattern = r'_(.*)_FRU_v[0-9]+'
         x = re.search(pattern, raw)
         if os.path.isdir(raw) and x != None:
             command = "rm -r %s" % raw
