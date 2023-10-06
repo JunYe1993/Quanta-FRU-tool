@@ -4,7 +4,7 @@ import xlrd
 import json
 from toolconfig import FRU_SUB_FOLDER_KEY
 
-row_check_table = [
+row_json_table = [
     "Organization",
     "Chassis Info Area",
     "Chassis Type",
@@ -13,40 +13,6 @@ row_check_table = [
     "Chassis Custom Data 1",
     "Chassis Custom Data 2",
     "Board Info Area",
-    "Language Code",
-    "Board Mfg Date",
-    "Board Mfg",
-    "Board Product",
-    "Board Serial",
-    "Board Part Number",
-    "Board FRU ID",
-    "Board  Custom Data 1",
-    "Board  Custom Data 2",
-    "Board  Custom Data 3",
-    "Board  Custom Data 4",
-    "Product Info Area",
-    "Language Code",
-    "Product Manufacturer",
-    "Product Name",
-    "Product Part Number",
-    "Product Version",
-    "Product Serial",
-    "Product Asset Tag",
-    "Product FRU ID",
-    "Product  Custom Data 1",
-    "Product  Custom Data 2",
-    "Product  Custom Data 3",
-]
-
-row_json_table = [
-    "",
-    "Chassis Info Area",
-    "Chassis Type",
-    "Chassis Part Number",
-    "Chassis Serial Number",
-    "Chassis Custom Data 1",
-    "Chassis Custom Data 2",
-    "",
     "Board Language Code",
     "Board Mfg Date",
     "Board Mfg",
@@ -58,7 +24,7 @@ row_json_table = [
     "Board Custom Data 2",
     "Board Custom Data 3",
     "Board Custom Data 4",
-    "",
+    "Product Info Area",
     "Product Language Code",
     "Product Manufacturer",
     "Product Name",
@@ -70,6 +36,15 @@ row_json_table = [
     "Product Custom Data 1",
     "Product Custom Data 2",
     "Product Custom Data 3",
+    "",
+]
+
+updated_json_table = []
+
+ignore_columns = [
+    "Organization",
+    "Board Info Area",
+    "Product Info Area"
 ]
 
 folder_name_table = {
@@ -128,15 +103,27 @@ def check_argv():
 
 def check_row_name(worksheet):
 
-    for i in range(1, worksheet.nrows):
+    area = ""
+    for i in range(2, worksheet.nrows):
+
         data = parentheses_off(worksheet.cell_value(i, 0))
         data = data.strip().replace(u'\xa0', u' ')
-        if i-2 == len(row_check_table):
-            if data != "":
-                print("row table need to be updated.")
-                exit()
-            else:
-                break
+        data = data.replace("  ", " ")
+
+
+        area = "Board " if data == "Board Info Area" else area
+        area = "Product " if data == "Product Info Area" else area
+        if data == "Language Code":
+            data = area + data
+        if data == "":
+            break
+
+        if data in row_json_table:
+            updated_json_table.append(data)
+        else:
+            print("Needs to update JSON table")
+            exit()
+
 
 def value_check(value):
 
@@ -197,10 +184,10 @@ def output_json(worksheet):
                 value = ""
 
             # there may some conments are under the chart, should be ignored
-            if (j-2 != len(row_json_table)):
+            if (j-2 != len(updated_json_table)):
                 # some column set to be ignored
-                if row_json_table[j-2] != "":
-                    folder_data[row_json_table[j-2]] = value
+                if updated_json_table[j-2] not in ignore_columns:
+                    folder_data[updated_json_table[j-2]] = value
             else:
                 break
 
@@ -224,7 +211,7 @@ if __name__ == "__main__":
 
     # Open the excel
     workbook = xlrd.open_workbook(sys.argv[1])
-    worksheet = workbook.sheet_by_index(0)
+    worksheet = workbook.sheet_by_index(1)
 
     # Check data
     check_row_name(worksheet)

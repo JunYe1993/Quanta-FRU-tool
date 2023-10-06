@@ -134,7 +134,6 @@ def update_txt_files(folder, fru_config):
             context = ""
             isupdated = False
             for line in open(file, "r"):
-                print(temp_FruConfig)
                 newline = update_txt_data(file, line, temp_FruConfig)
                 if line != newline:
                     line = newline
