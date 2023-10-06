@@ -78,6 +78,8 @@ folder_name_table = {
 
 def parentheses_off(string):
 
+    string = string.replace('\n', '')
+
     pattern = r'(.*)\(.*\)(.*)'
     x = re.search(pattern, string)
     if x != None:
@@ -88,7 +90,7 @@ def parentheses_off(string):
     if x != None:
         string = x.group(1) + x.group(2)
 
-    return string
+    return string.strip()
 
 def check_argv():
 
@@ -105,11 +107,9 @@ def check_row_name(worksheet):
 
     area = ""
     for i in range(2, worksheet.nrows):
-
         data = parentheses_off(worksheet.cell_value(i, 0))
         data = data.strip().replace(u'\xa0', u' ')
         data = data.replace("  ", " ")
-
 
         area = "Board " if data == "Board Info Area" else area
         area = "Product " if data == "Product Info Area" else area

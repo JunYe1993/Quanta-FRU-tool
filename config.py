@@ -154,7 +154,7 @@ def key_change(config):
         for key in config[FRU].keys():
             if key_change_table.get(key) and key != "":
                 newKey = key_change_table[key]
-                newConfig[FRU][newKey] = get_value(newKey, config[FRU][key]).strip()
+                newConfig[FRU][newKey] = get_value(newKey, config[FRU][key])
     return newConfig
 
 def ini_value_check(config, key, table):
