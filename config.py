@@ -25,7 +25,7 @@ key_change_table = {
 
     "Product Language Code" : "PD Language Code",
     "Product Manufacturer"  : "PD Manufacturer",
-    "Product Name"          : "PD Name",
+    "Product Name"          : "PD Product Name",
     "Product Part Number"   : "PD Part Number",
     "Product Version"       : "PD Version",
     "Product Serial"        : "PD Serial Number",
