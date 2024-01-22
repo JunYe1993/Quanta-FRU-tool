@@ -5,6 +5,8 @@ from distutils.dir_util import copy_tree
 
 import config as config_reader
 from excel import parentheses_off
+from toolconfig import PROJECT_PROCEDURES
+from toolconfig import PROJECT_BASE
 from toolconfig import PROJECT_NAME
 from toolconfig import DEVELOP_STAGE
 from toolconfig import FRU_VERSION_KEY
@@ -12,6 +14,7 @@ from toolconfig import FRU_SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import QPN_MARK
 from toolconfig import FRU_MARK
+from toolconfig import PRC_MARK
 
 showMsgEnable = False
 MODES = ["M1/", "M3/"]
@@ -218,6 +221,9 @@ def update_note(line, FRU, update_list={}):
     x = re.search(pattern_date, line)
     if x != None:
         line = line.replace(line[x.start():x.end()], new_date)
+
+    # update flash procedure
+    line = line.replace(PRC_MARK, PROJECT_PROCEDURES[PROJECT_BASE])
 
     return line
 
