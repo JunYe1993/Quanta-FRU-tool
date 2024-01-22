@@ -10,7 +10,8 @@ from toolconfig import DEVELOP_STAGE
 from toolconfig import FRU_VERSION_KEY
 from toolconfig import FRU_SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
-from toolconfig import CHASSIS_QPN_MARK
+from toolconfig import QPN_MARK
+from toolconfig import FRU_MARK
 
 showMsgEnable = False
 MODES = ["M1/", "M3/"]
@@ -193,9 +194,8 @@ def update_ini_files(folder, fru_config):
 def get_ReleaseNote(folder):
     return glob.glob(os.path.join(folder, "*txt"), recursive=True)
 
-def update_note(line, update_list={}):
+def update_note(line, FRU, update_list={}):
     pattern_version = r'v[0-9].[0-9]{2}'
-    pattern_pnumber = r'[0-9][0-9A-Z]{10}'
     pattern_date = r'[0-9]{4}/[0-9]{2}/[0-9]{2}'
 
     # update version
@@ -208,9 +208,10 @@ def update_note(line, update_list={}):
 
     # update part number
     new_pnumber = get_part_numbers(update_list)[0]
-    x = re.search(pattern_pnumber, line)
-    if x != None:
-        line = line.replace(line[x.start():x.end()], new_pnumber)
+    line = line.replace(QPN_MARK, new_pnumber)
+
+    # update fru
+    line = line.replace(FRU_MARK, FRU)
 
     # update date
     new_date = date.today().strftime("%Y/%m/%d")
@@ -220,13 +221,13 @@ def update_note(line, update_list={}):
 
     return line
 
-def update_release_note(folder, fru_config):
+def update_release_note(folder, fru_config, FRU):
     # expected only one file
     for note in get_ReleaseNote(folder):
         context = ""
         isupdated = False
         for line in open(note, "r"):
-            newline = update_note(line, fru_config)
+            newline = update_note(line, FRU, fru_config)
             if line != newline:
                 line = newline
                 isupdated = True
@@ -236,6 +237,9 @@ def update_release_note(folder, fru_config):
         msg = " updated." if isupdated else " already updated."
         showMsg(note + " > data" + msg, isupdated)
 
+        new_name = "%s/%s%s" % (os.path.dirname(note), PROJECT_NAME, os.path.basename(note))
+        os.rename(note, new_name)
+
 def update_script(folder, fru_config):
     # update file name folder/linux/**/*.sh
     for mode in MODES:
@@ -243,7 +247,7 @@ def update_script(folder, fru_config):
         for script in get_linux_scripts(folder, mode):
             new_content = ""
             for line in open(script, "r"):
-                new_content += line.replace(CHASSIS_QPN_MARK, fru_config[FRU_SUB_FOLDER_KEY][pn_index])
+                new_content += line.replace(QPN_MARK, fru_config[FRU_SUB_FOLDER_KEY][pn_index])
             with open(script, "w") as s:
                 s.write(new_content)
 
@@ -305,7 +309,7 @@ def update(config):
             update_txt_files(folders[FRU], config["txt"][FRU])
             update_ini_files(folders[FRU], config["m1_ini"][FRU])
             update_ini_files(folders[FRU], config["m3_ini"][FRU])
-            update_release_note(folders[FRU], config["txt"][FRU])
+            update_release_note(folders[FRU], config["txt"][FRU], FRU)
             update_script(folders[FRU], config["txt"][FRU])
             update_folder_name(folders[FRU], config["txt"][FRU])
             update_folder_fru_version(folders[FRU], get_fru_version(config["txt"][FRU]))

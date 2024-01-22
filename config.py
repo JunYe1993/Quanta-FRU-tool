@@ -136,7 +136,14 @@ def get_value(key, value):
             x = re.search(pattern, arr[i])
             if x != None:
                 ret.append(x.group(1))
+            elif parentheses_off(arr[i]) == "TBD":
+                ret.append("TBD")
+
         return ret
+
+    elif key == "M/B Fru File ID":
+        # Remove "(english)"
+        return parentheses_off(value)
 
     else:
         ini_key = key + "(Y/N)"
@@ -155,6 +162,10 @@ def key_change(config):
             if key_change_table.get(key) and key != "":
                 newKey = key_change_table[key]
                 newConfig[FRU][newKey] = get_value(newKey, config[FRU][key])
+        # for some PM or early stage that may not have FRU_SUB_FOLDER_KEY filled
+        if len(newConfig[FRU][FRU_SUB_FOLDER_KEY]) == 0:
+            newConfig[FRU][FRU_SUB_FOLDER_KEY] = newConfig[FRU][FRU_PART_NUMBER_KEY]
+
     return newConfig
 
 def ini_value_check(config, key, table):
@@ -179,10 +190,15 @@ def get_ini_config(ini_table, config):
 
 def read_config(filename):
     with open ("excel_raw_output.json", 'r', encoding='utf-8') as f:
+        # create main config
         txt_config = json.load(f)
         txt_config = key_change(txt_config)
+
+        # create ini config
         ini_m1_config = get_ini_config(ini_key_m1_table, txt_config)
         ini_m3_config = get_ini_config(ini_key_m3_table, txt_config)
+
+        # merge config
         config = {}
         config["txt"] = txt_config
         config["m1_ini"] = ini_m1_config
