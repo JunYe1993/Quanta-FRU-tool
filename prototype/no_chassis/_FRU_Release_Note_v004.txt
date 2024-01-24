@@ -21,17 +21,14 @@ Example procedure:
      (1) Change directory to "linux/FRU_Writer/M1"
      (2) Execute "./#QPN_Marker.sh fru.bin"
      (3) scp fru.bin into openbmc
-     (4) Execute "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-xx/device/xx-00xx/eeprom" in openbmc
+     (4) Execute "#PRC_Marker" in openbmc
 
   2. Programming FRU for #FRU_Marker M3:
      (1) Change directory to "linux/FRU_Writer/M3"
      (2) Execute "./#QPN_Marker.sh fru.bin"
      (3) scp fru.bin into openbmc
-     (4) Execute "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-xx/device/xx-00xx/eeprom" in openbmc
+     (4) Execute "#PRC_Marker" in openbmc
 
 Changed/Added:
   1. Add FRU files for M1 and M3:
      (1) #QPN_Marker
-
-
-

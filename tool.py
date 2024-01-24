@@ -5,8 +5,7 @@ from distutils.dir_util import copy_tree
 
 import config as config_reader
 from excel import parentheses_off
-from toolconfig import PROJECT_PROCEDURES
-from toolconfig import PROJECT_BASE
+from toolconfig import get_procedure
 from toolconfig import PROJECT_NAME
 from toolconfig import DEVELOP_STAGE
 from toolconfig import FRU_VERSION_KEY
@@ -223,7 +222,7 @@ def update_note(line, FRU, update_list={}):
         line = line.replace(line[x.start():x.end()], new_date)
 
     # update flash procedure
-    line = line.replace(PRC_MARK, PROJECT_PROCEDURES[PROJECT_BASE])
+    line = line.replace(PRC_MARK, get_procedure(FRU))
 
     return line
 
