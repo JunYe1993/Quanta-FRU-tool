@@ -14,6 +14,8 @@ from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import QPN_MARK
 from toolconfig import FRU_MARK
 from toolconfig import PRC_MARK
+from toolconfig import INI_PUT_MARK
+from toolconfig import INI_LEN_MARK
 
 showMsgEnable = False
 MODES = ["M1/", "M3/"]
@@ -160,19 +162,19 @@ def get_ini_files(folder, mode=None):
     return glob.glob(os.path.join(path, "*ini"), recursive=True)
 
 def get_ini_line_key(line):
-    pattern = r'[\s]{2,}(.*\(Y\/N\))'
+    pattern = r'[\s]{2,}(.*)\('
     x = re.search(pattern, line)
-    return x.group(1).rstrip() if x != None else None
-
-def get_ini_updated_line(line, value):
-    pattern = r'= [YN]'
-    sindex, eindex = re.search(pattern, line).span()
-    return line[:sindex+2] + value + line[eindex:]
+    return x.group(1).strip() if x != None else ""
 
 def update_ini_data(file, line, update_list={}):
-    key = get_ini_line_key(line)
+    key = get_ini_line_key(line) + "(Y/N)"
     if update_list.get(key) != None:
-        return get_ini_updated_line(line, update_list[key])
+        if update_list[key] == "Y":
+            line = line.replace(INI_PUT_MARK, "Y")
+            line = line.replace(INI_LEN_MARK, "2:63")
+        elif update_list[key] == "N":
+            line = line.replace(INI_PUT_MARK, "N")
+            line = line.replace(INI_LEN_MARK, "0:63")
     return line
 
 def update_ini_files(folder, fru_config):

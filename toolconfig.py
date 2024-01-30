@@ -13,6 +13,8 @@ FRU_PART_NUMBER_KEY = "M/B Part Number"
 QPN_MARK = "#QPN_Marker"
 FRU_MARK = "#FRU_Marker"
 PRC_MARK = "#PRC_Marker"
+INI_PUT_MARK = "#PUT_Marker"
+INI_LEN_MARK = "#LEN_Marker"
 
 def get_procedure(fru):
     if PROJECT_BASE == "Meta-OpenBmc":
