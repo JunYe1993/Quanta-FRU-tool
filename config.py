@@ -2,6 +2,8 @@ import re, json
 from excel import parentheses_off
 from toolconfig import FRU_SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
+from toolconfig import FRU_VERSION_KEY
+from toolconfig import FRU_FBPN_KEY
 
 key_change_table = {
     FRU_SUB_FOLDER_KEY      : FRU_SUB_FOLDER_KEY,
@@ -16,9 +18,9 @@ key_change_table = {
     "Board Mfg"             : "M/B Manufacturer Name",
     "Board Product"         : "M/B Product Name",
     "Board Serial"          : "M/B Serial Number",
-    "Board Part Number"     : "M/B Part Number",
-    "Board FRU ID"          : "M/B Fru File ID",
-    "Board Custom Data 1"   : "M/B Custom Field 1",
+    "Board Part Number"     : FRU_PART_NUMBER_KEY, # "M/B Fru File ID"
+    "Board FRU ID"          : FRU_VERSION_KEY,     # "M/B Part Number"
+    "Board Custom Data 1"   : FRU_FBPN_KEY,        # "M/B Custom Field 1"
     "Board Custom Data 2"   : "M/B Custom Field 2",
     "Board Custom Data 3"   : "M/B Custom Field 3",
     "Board Custom Data 4"   : "M/B Custom Field 4",
@@ -51,9 +53,9 @@ ini_key_m1_table = {
     "M/B Manufacturer Name(Y/N)"        : "N",
     "M/B Product Name(Y/N)"             : "N",
     "M/B Serial Number(Y/N)"            : "Y",
-    "M/B Part Number(Y/N)"              : "N",
-    "M/B Fru File ID(Y/N)"              : "N",
-    "M/B Custom Field 1(Y/N)"           : "N",
+    FRU_PART_NUMBER_KEY+"(Y/N)"         : "N",
+    FRU_VERSION_KEY+"(Y/N)"             : "N",
+    FRU_FBPN_KEY+"(Y/N)"                : "N",
     "M/B Custom Field 2(Y/N)"           : "Y",
     "M/B Custom Field 3(Y/N)"           : "Y",
     "M/B Custom Field 4(Y/N)"           : "N",
@@ -84,9 +86,9 @@ ini_key_m3_table = {
     "M/B Manufacturer Name(Y/N)"        : "N",
     "M/B Product Name(Y/N)"             : "N",
     "M/B Serial Number(Y/N)"            : "N",
-    "M/B Part Number(Y/N)"              : "N",
-    "M/B Fru File ID(Y/N)"              : "N",
-    "M/B Custom Field 1(Y/N)"           : "N",
+    FRU_PART_NUMBER_KEY+"(Y/N)"         : "N",
+    FRU_VERSION_KEY+"(Y/N)"             : "N",
+    FRU_FBPN_KEY+"(Y/N)"                : "N",
     "M/B Custom Field 2(Y/N)"           : "N",
     "M/B Custom Field 3(Y/N)"           : "N",
     "M/B Custom Field 4(Y/N)"           : "N",
@@ -107,7 +109,9 @@ tags = {
     "[not defined]",
 }
 
-def get_value(key, value):
+FBPN_NUMBER_LIST = {}
+
+def get_value(key, value, FRU):
     # base on new key (key_change_table's value)
     # there some exception need to change value
     if key == "Chassis Type":
@@ -127,23 +131,41 @@ def get_value(key, value):
         # Remove "(english)"
         return parentheses_off(value)
 
-    elif key == FRU_PART_NUMBER_KEY or key == FRU_SUB_FOLDER_KEY:
-        # Board Part Number: split by \n
-        arr = value.splitlines()
+    elif key == FRU_PART_NUMBER_KEY:
+        # Board Part Number: is a string list && split by \n
+        FBPN_NUMBER_LIST[FRU] = []
         ret = []
-        for i in range(0, len(arr)):
-            pattern = r'([0-9A-Z]{11})'
-            x = re.search(pattern, arr[i])
-            if x != None:
-                ret.append(x.group(1))
-            elif parentheses_off(arr[i]) == "TBD":
-                ret.append("TBD")
+        for item in value:
+            arr = item.splitlines()
+            for i in range(0, len(arr)):
+                pattern = r'([0-9A-Z]{11})'
+                x = re.search(pattern, arr[i])
+                if x != None:
+                    ret.append(x.group(1))
+                elif parentheses_off(arr[i]) == "TBD":
+                    ret.append("TBD")
+
+            # for board merge consequence
+            # others should base on FRU PART NUMBER
+            FBPN_NUMBER_LIST[FRU].append(len(arr))
 
         return ret
 
-    elif key == "M/B Fru File ID":
+    elif key == FRU_VERSION_KEY:
         # Remove "(english)"
         return parentheses_off(value)
+
+    elif key == FRU_FBPN_KEY:
+        # for board merge
+        if len(FBPN_NUMBER_LIST[FRU]) != len(value):
+            print("excel proccess went wrong, FBPN_NUMBER_LIST length not matching")
+            exit()
+
+        ret = []
+        for i in range(0, len(FBPN_NUMBER_LIST[FRU])):
+            for j in range(0, FBPN_NUMBER_LIST[FRU][i]):
+                ret.append(value[i])
+        return ret
 
     else:
         ini_key = key + "(Y/N)"
@@ -158,10 +180,12 @@ def key_change(config):
     newConfig = {}
     for FRU in config:
         newConfig[FRU] = {}
+        # TODO: someday needs to fix that PART NUMBER (FRU_PART_NUMBER_KEY)
+        #       should be the first key for board merging
         for key in config[FRU].keys():
             if key_change_table.get(key) and key != "":
                 newKey = key_change_table[key]
-                newConfig[FRU][newKey] = get_value(newKey, config[FRU][key])
+                newConfig[FRU][newKey] = get_value(newKey, config[FRU][key], FRU)
         # for some PM or early stage that may not have FRU_SUB_FOLDER_KEY filled
         if len(newConfig[FRU][FRU_SUB_FOLDER_KEY]) == 0:
             newConfig[FRU][FRU_SUB_FOLDER_KEY] = newConfig[FRU][FRU_PART_NUMBER_KEY]

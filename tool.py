@@ -5,12 +5,16 @@ from distutils.dir_util import copy_tree
 
 import config as config_reader
 from excel import parentheses_off
-from toolconfig import get_procedure
+
+from toolconfig import PROJECT_BASE
 from toolconfig import PROJECT_NAME
 from toolconfig import DEVELOP_STAGE
-from toolconfig import FRU_VERSION_KEY
+
 from toolconfig import FRU_SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
+from toolconfig import FRU_VERSION_KEY
+from toolconfig import MERGE_FRU_KEY_LIST
+
 from toolconfig import QPN_MARK
 from toolconfig import FRU_MARK
 from toolconfig import PRC_MARK
@@ -134,8 +138,11 @@ def update_txt_files(folder, fru_config):
             if len(fru_config[FRU_PART_NUMBER_KEY]) == 0:
                 continue
             # update content
+            # for board merge
             temp_FruConfig = fru_config.copy()
-            temp_FruConfig[FRU_PART_NUMBER_KEY] = fru_config[FRU_PART_NUMBER_KEY][part_number_index]
+            for key in MERGE_FRU_KEY_LIST:
+                temp_FruConfig[key] = fru_config[key][part_number_index]
+
             context = ""
             isupdated = False
             for line in open(file, "r"):
@@ -197,6 +204,23 @@ def update_ini_files(folder, fru_config):
 
 def get_ReleaseNote(folder):
     return glob.glob(os.path.join(folder, "*txt"), recursive=True)
+
+def get_procedure(fru):
+    if PROJECT_BASE == "Meta-OpenBmc":
+        return "fruid-util xxx --write fru.bin"
+    elif PROJECT_BASE == "LF-OpenBmc":
+        target = {
+            "MB"     : [15, 56],
+            "PTTV"   : [15, 50],
+            "PDB"    : [ 4, 52],
+            "MB_SCM" : [29, 54],
+            "MB_BSM" : [ 9, 52]
+        }
+        if fru in target.keys():
+            return "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-%d/device/%d-00%d/eeprom" \
+                        % (target[fru][0], target[fru][0], target[fru][1])
+        else:
+            return "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-xx/device/xx-00xx/eeprom"
 
 def update_note(line, FRU, update_list={}):
     pattern_version = r'v[0-9].[0-9]{2}'

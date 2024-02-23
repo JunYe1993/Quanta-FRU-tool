@@ -2,6 +2,8 @@
 import sys, re
 import xlrd
 import json
+from toolconfig import NO_SUB_FOLDER_ROW
+from toolconfig import MERGE_KEY_LIST
 from toolconfig import FRU_SUB_FOLDER_KEY
 
 row_json_table = [
@@ -48,32 +50,6 @@ ignore_columns = [
 ]
 
 folder_name_table = {
-    "BMC Storage Module"                     : "BSM",
-    "Grand Teton MB"                         : "MB",
-    "Grand Teton MB (HSC on board)"          : "MB(on_board)",
-    "Grand Teton MB (HSC module)"            : "MB(module)",
-    "Grand Teton_MB_HSC Module"              : "MB_HSC",
-    "Grand Teton SCM"                        : "SCM",
-    "Grand Teton Expander BD"                : "SWB",
-    "Grand Teton Expander BD (HSC on board)" : "SWB(on_board)",
-    "Grand Teton Expander BD (HSC module)"   : "SWB(module)",
-    "Grand Teton_Expander BD_HSC Module"     : "SWB_HSC",
-    "Grand Teton Front IO Board"             : "FIO",
-    "Grand Teton Vertical PDB"               : "VPDB",
-    "Grand Teton HGX PDB"                    : "HPDB",
-    "Grand Teton FAN Board"                  : "FAN_BP",
-    "Grand Teton Vertical PDB_Brick"         : "VPDB_Brick",
-    "Grand Teton Vertical PDB_Discrete"      : "VPDB_Discrete",
-    "Grand Teton Expander BD (PVT1)"         : "SWB(PVT1)",
-    "Grand Teton Expander BD (PVT2)"         : "SWB(PVT2)",
-    "Grand Teton Vertical PDB (PVT1)"        : "VPDB(PVT1)",
-    "Grand Teton Vertical PDB (PVT2)"        : "VPDB(PVT2)",
-    "Grand Teton Vertical PDB (PVT3)"        : "VPDB(PVT3)",
-    "Grand Teton Vertical PDB (PVT4)"        : "VPDB(PVT4)",
-    "Grand Teton HGX PDB (PVT1)"             : "HPDB(PVT1)",
-    "Grand Teton HGX PDB (PVT2)"             : "HPDB(PVT2)",
-    "Grand Teton HGX PDB (PVT3)"             : "HPDB(PVT3)",
-    "Grand Teton HGX PDB (PVT4)"             : "HPDB(PVT4)",
 }
 
 def parentheses_off(string):
@@ -174,7 +150,10 @@ def output_json(worksheet):
 
         folder_data = {}
         folder_data[FRU_SUB_FOLDER_KEY] = worksheet.cell_value(1, i).strip().replace(u'\xa0', u' ')
-        for j in range(2, worksheet.nrows):
+        if NO_SUB_FOLDER_ROW:
+            folder_data[FRU_SUB_FOLDER_KEY] = ""
+
+        for j in range(1, worksheet.nrows):
             value = worksheet.cell_value(j, i).strip().replace(u'\xa0', u' ')
             value = value_check(value)
 
@@ -194,10 +173,13 @@ def output_json(worksheet):
         # there might be more than one row which has the same board name.
         # it meant to be merge, so the data should be the same except "Board Part Number"
         if folder_name in output:
-            output[folder_name][FRU_SUB_FOLDER_KEY] += "\n" + folder_data[FRU_SUB_FOLDER_KEY]
-            output[folder_name]["Board Part Number"] += "\n" + folder_data["Board Part Number"]
+            for key in MERGE_KEY_LIST:
+                output[folder_name][key].append(folder_data[key])
         else:
             output[folder_name] = folder_data
+            # merge list for same folder name (ex. MB)
+            for key in MERGE_KEY_LIST:
+                output[folder_name][key] = [output[folder_name][key]]
 
     with open ("excel_raw_output.json", 'w', encoding='utf-8') as json_file:
         json.dump(output, json_file, ensure_ascii=False, indent=4)
