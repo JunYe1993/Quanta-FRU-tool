@@ -9,7 +9,7 @@ MERGE_KEY_LIST = [
 ]
 
 # config
-PROJECT_BASE = ""
+PROJECT_BASE = "" # "Meta-OpenBmc", "LF-OpenBmc"
 PROJECT_NAME = ""
 DEVELOP_STAGE = ""
 
