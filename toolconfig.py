@@ -1,5 +1,5 @@
 #!/bin/python3
-import json
+import json, re
 
 # excel spec
 NO_SUB_FOLDER_ROW = True
@@ -23,18 +23,30 @@ MERGE_FRU_KEY_LIST = [
     FRU_FBPN_KEY,
 ]
 
-# Marker
-QPN_MARK = "#QPN_Marker"
-FRU_MARK = "#FRU_Marker"
-PRC_MARK = "#PRC_Marker"
-INI_PUT_MARK = "#PUT_Marker"
-INI_LEN_MARK = "#LEN_Marker"
+def parentheses_off(string):
+    # remove \n
+    string = string.replace('\n', '')
+
+    # foo1(feee)foo2 > foo1foo2
+    pattern = r'(.*)\(.*\)(.*)'
+    x = re.search(pattern, string)
+    if x != None:
+        string = x.group(1) + x.group(2)
+
+    # foo1[feee]foo2 > foo1foo2
+    pattern = r'(.*)\[.*\](.*)'
+    x = re.search(pattern, string)
+    if x != None:
+        string = x.group(1) + x.group(2)
+
+    # remove space
+    return string.strip()
 
 if __name__ == "__main__":
     folder_string = ""
     with open ("excel_raw_folder.json", 'r', encoding='utf-8') as f:
         folders = json.load(f)
         for name in folders:
-            folder_string += "\""+name+"\" "
+            folder_string += '\"%s\" ' % (name)
 
     print(folder_string)

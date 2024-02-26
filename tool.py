@@ -4,7 +4,8 @@ from shutil import copyfile
 from distutils.dir_util import copy_tree
 
 import config as config_reader
-from excel import parentheses_off
+
+from toolconfig import parentheses_off
 
 from toolconfig import PROJECT_BASE
 from toolconfig import PROJECT_NAME
@@ -15,11 +16,16 @@ from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import FRU_VERSION_KEY
 from toolconfig import MERGE_FRU_KEY_LIST
 
-from toolconfig import QPN_MARK
-from toolconfig import FRU_MARK
-from toolconfig import PRC_MARK
-from toolconfig import INI_PUT_MARK
-from toolconfig import INI_LEN_MARK
+### Marker
+# non txt and ini files. (ex release_note and bash script ...)
+QPN_MARK = "#QPN_Marker" #
+FRU_MARK = "#FRU_Marker" #
+PRC_MARK = "#PRC_Marker" # command for BMC FRU update (dd or fru-util ...)
+# ini
+INI_PUT_MARK = "#PUT_Marker"
+INI_LEN_MARK = "#LEN_Marker"
+# txt
+TXT_VAL_MARK = "#VAL_Marker"
 
 showMsgEnable = False
 MODES = ["M1/", "M3/"]
@@ -59,7 +65,6 @@ def get_folder():
         x = re.search(pattern, raw)
         if (os.path.isdir(raw) and x):
             folders[x.group(1)] = raw
-    # print(folders)
     return folders
 
 def get_txt_files(folder, mode=None):
@@ -115,16 +120,18 @@ def get_line_key(line):
     x = re.search(pattern, line)
     return x.group(1).rstrip() if x != None else None
 
-def get_updated_line(line, value):
-    pattern = r'".*"'
-    sindex, eindex = re.search(pattern, line).span()
-    return line[:sindex+1] + value + line[eindex-1:]
-
 def update_txt_data(file, line, update_list={}):
     key = get_line_key(line)
-    if update_list.get(key) != None:
-        return get_updated_line(line, parentheses_off(update_list[key]))
-    return line
+
+    if key != None:
+        # match keys in config list
+        value = ""
+        if update_list.get(key) != None:
+            value = parentheses_off(update_list[key])
+
+        return line.replace(TXT_VAL_MARK, value)
+    else:
+        return line
 
 def update_txt_files(folder, fru_config):
 
@@ -203,7 +210,7 @@ def update_ini_files(folder, fru_config):
         showMsg(file + " > data updated.", True)
 
 def get_ReleaseNote(folder):
-    return glob.glob(os.path.join(folder, "*txt"), recursive=True)
+    return glob.glob(os.path.join(folder, "*FRU_Release_Note*"), recursive=True)
 
 def get_procedure(fru):
     if PROJECT_BASE == "Meta-OpenBmc":
@@ -308,33 +315,23 @@ def get_fru_version(config={}):
 def update_folder_fru_version(folder, version):
     if version == "xxx": return
 
-    pattern = r'v[0-9]{3}'
-    new_version = "v" + version
-
     # update file name /folder/Release Note.txt
     for note in get_ReleaseNote(folder):
-        _dir = os.path.dirname(note)
-        note = os.path.basename(note)
-        x = re.search(pattern, note)
-        if x != None and note[x.start():x.end()] != new_version:
-            new_note = note.replace(note[x.start():x.end()], new_version)
-            os.rename(_dir+"/"+note, _dir+"/"+new_note)
-            showMsg(_dir+"/"+new_note + " > name updated.", True)
-        else:
-            showMsg(_dir+"/"+note + " already updated.")
+        dir_ = os.path.dirname(note)
+        base = os.path.basename(note)
+        new_note = "%s/%sv%s.txt" % (dir_, base, version)
+        os.rename(note, new_note)
+        showMsg(new_note + " > name updated.", True)
 
     # update folder name /folder
-    if folder[-3:] == version:
-        showMsg(folder + " already updated.")
-    else:
-        new_name = folder[:-3]+version
-        os.rename(folder, new_name)
-        showMsg(new_name + " > name updated.", True)
+    new_name = folder[:-3]+version
+    os.rename(folder, new_name)
+    showMsg(new_name + " > name updated.", True)
 
 def update(config):
     folders = get_folder()
     for FRU in config["txt"]:
-        # FRU = "HPDB"
+        FRU = "HPDB"
         if folders.get(FRU):
             match_file_number(folders[FRU], config["txt"][FRU])
             update_txt_files(folders[FRU], config["txt"][FRU])
@@ -344,7 +341,7 @@ def update(config):
             update_script(folders[FRU], config["txt"][FRU])
             update_folder_name(folders[FRU], config["txt"][FRU])
             update_folder_fru_version(folders[FRU], get_fru_version(config["txt"][FRU]))
-        # break
+        break
 
 
 def get_zip():

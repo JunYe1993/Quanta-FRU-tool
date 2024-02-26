@@ -26,9 +26,9 @@ key_change_table = {
     "Board Custom Data 4"   : "M/B Custom Field 4",
 
     "Product Language Code" : "PD Language Code",
-    "Product Manufacturer"  : "PD Manufacturer",
+    "Product Manufacturer"  : "PD Manufacturer Name",
     "Product Name"          : "PD Product Name",
-    "Product Part Number"   : "PD Part Number",
+    "Product Part Number"   : "PD Part/Model Number",
     "Product Version"       : "PD Version",
     "Product Serial"        : "PD Serial Number",
     "Product Asset Tag"     : "PD Asset Tag",
