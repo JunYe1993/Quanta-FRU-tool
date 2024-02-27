@@ -11,7 +11,7 @@ from toolconfig import PROJECT_BASE
 from toolconfig import PROJECT_NAME
 from toolconfig import DEVELOP_STAGE
 
-from toolconfig import FRU_SUB_FOLDER_KEY
+from toolconfig import SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import FRU_VERSION_KEY
 from toolconfig import MERGE_FRU_KEY_LIST
@@ -285,7 +285,7 @@ def update_script(folder, fru_config):
         for script in get_linux_scripts(folder, mode):
             new_content = ""
             for line in open(script, "r"):
-                new_content += line.replace(QPN_MARK, fru_config[FRU_SUB_FOLDER_KEY][pn_index])
+                new_content += line.replace(QPN_MARK, fru_config[SUB_FOLDER_KEY][pn_index])
             with open(script, "w") as s:
                 s.write(new_content)
 
@@ -299,9 +299,9 @@ def update_folder_name(folder, fru_config):
     for name in folder_names:
         index, file = os.path.split(name)
         null, index = os.path.split(index)
-        index = int(index) % len(fru_config[FRU_SUB_FOLDER_KEY])
+        index = int(index) % len(fru_config[SUB_FOLDER_KEY])
         old = os.path.dirname(name)
-        new = os.path.dirname(old)+"/"+fru_config[FRU_SUB_FOLDER_KEY][index]
+        new = os.path.dirname(old)+"/"+fru_config[SUB_FOLDER_KEY][index]
         os.rename(old, new)
 
 def get_fru_version(config={}):
@@ -331,7 +331,6 @@ def update_folder_fru_version(folder, version):
 def update(config):
     folders = get_folder()
     for FRU in config["txt"]:
-        FRU = "HPDB"
         if folders.get(FRU):
             match_file_number(folders[FRU], config["txt"][FRU])
             update_txt_files(folders[FRU], config["txt"][FRU])
@@ -341,7 +340,6 @@ def update(config):
             update_script(folders[FRU], config["txt"][FRU])
             update_folder_name(folders[FRU], config["txt"][FRU])
             update_folder_fru_version(folders[FRU], get_fru_version(config["txt"][FRU]))
-        break
 
 
 def get_zip():

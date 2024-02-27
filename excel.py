@@ -4,7 +4,7 @@ import xlrd
 import json
 from toolconfig import NO_SUB_FOLDER_ROW
 from toolconfig import MERGE_KEY_LIST
-from toolconfig import FRU_SUB_FOLDER_KEY
+from toolconfig import SUB_FOLDER_KEY
 
 row_json_table = [
     "Organization",
@@ -149,9 +149,9 @@ def output_json(worksheet):
         target_folder[folder_name]["Chassis Info"] = True
 
         folder_data = {}
-        folder_data[FRU_SUB_FOLDER_KEY] = worksheet.cell_value(1, i).strip().replace(u'\xa0', u' ')
+        folder_data[SUB_FOLDER_KEY] = worksheet.cell_value(1, i).strip().replace(u'\xa0', u' ')
         if NO_SUB_FOLDER_ROW:
-            folder_data[FRU_SUB_FOLDER_KEY] = ""
+            folder_data[SUB_FOLDER_KEY] = ""
 
         for j in range(1, worksheet.nrows):
             value = worksheet.cell_value(j, i).strip().replace(u'\xa0', u' ')
@@ -193,7 +193,7 @@ if __name__ == "__main__":
 
     # Open the excel
     workbook = xlrd.open_workbook(sys.argv[1])
-    worksheet = workbook.sheet_by_index(1)
+    worksheet = workbook.sheet_by_index(0)
 
     # Check data
     check_row_name(worksheet)

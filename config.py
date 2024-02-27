@@ -1,12 +1,12 @@
 import re, json
 from excel import parentheses_off
-from toolconfig import FRU_SUB_FOLDER_KEY
+from toolconfig import SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import FRU_VERSION_KEY
 from toolconfig import FRU_FBPN_KEY
 
 key_change_table = {
-    FRU_SUB_FOLDER_KEY      : FRU_SUB_FOLDER_KEY,
+    SUB_FOLDER_KEY      : SUB_FOLDER_KEY,
     "Chassis Type"          : "Chassis Type",
     "Chassis Part Number"   : "Chassis Part Number",
     "Chassis Serial Number" : "Chassis Serial Number",
@@ -131,6 +131,21 @@ def get_value(key, value, FRU):
         # Remove "(english)"
         return parentheses_off(value)
 
+    elif key == SUB_FOLDER_KEY:
+        # Board Part Number: is a string list && split by \n
+        ret = []
+        for item in value:
+            arr = item.splitlines()
+            for i in range(0, len(arr)):
+                pattern = r'([0-9A-Z]{11})'
+                x = re.search(pattern, arr[i])
+                if x != None:
+                    ret.append(x.group(1))
+                elif parentheses_off(arr[i]) == "TBD":
+                    ret.append("TBD")
+
+        return ret
+
     elif key == FRU_PART_NUMBER_KEY:
         # Board Part Number: is a string list && split by \n
         FBPN_NUMBER_LIST[FRU] = []
@@ -186,9 +201,9 @@ def key_change(config):
             if key_change_table.get(key) and key != "":
                 newKey = key_change_table[key]
                 newConfig[FRU][newKey] = get_value(newKey, config[FRU][key], FRU)
-        # for some PM or early stage that may not have FRU_SUB_FOLDER_KEY filled
-        if len(newConfig[FRU][FRU_SUB_FOLDER_KEY]) == 0:
-            newConfig[FRU][FRU_SUB_FOLDER_KEY] = newConfig[FRU][FRU_PART_NUMBER_KEY]
+        # for some PM or early stage that may not have SUB_FOLDER_KEY filled
+        if len(newConfig[FRU][SUB_FOLDER_KEY]) == 0:
+            newConfig[FRU][SUB_FOLDER_KEY] = newConfig[FRU][FRU_PART_NUMBER_KEY]
 
     return newConfig
 

@@ -2,8 +2,10 @@
 import json, re
 
 # excel spec
-NO_SUB_FOLDER_ROW = True
+NO_SUB_FOLDER_ROW = False
+SUB_FOLDER_KEY  = "Sub Folder Name" # TODO : need to rework if some project put in
 MERGE_KEY_LIST = [
+    SUB_FOLDER_KEY,
     "Board Part Number",   # FRU_PART_NUMBER_KEY
     "Board Custom Data 1", # FRU_FBPN_KEY
 ]
@@ -14,7 +16,6 @@ PROJECT_NAME = ""
 DEVELOP_STAGE = ""
 
 # define
-FRU_SUB_FOLDER_KEY  = "Sub Folder Name" # TODO : need to rework if some project put in
 FRU_PART_NUMBER_KEY = "M/B Part Number"
 FRU_VERSION_KEY     = "M/B Fru File ID"
 FRU_FBPN_KEY        = "M/B Custom Field 1"
