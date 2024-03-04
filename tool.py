@@ -355,6 +355,7 @@ def get_zip():
                 -x prototype* \
                 -x .git* \
                 -x ICT* \
+                -x history* \
                 " %  filename
     process = subprocess.Popen(zipcommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()

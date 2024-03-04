@@ -161,6 +161,11 @@ def output_json(worksheet):
             if value == "no chassis information":
                 target_folder[folder_name]["Chassis Info"] = False
                 value = ""
+            # someone just dont like to fill "no chassis information"
+            # judge by no input in Chassis Type
+            elif worksheet.cell_value(j, 0).strip().replace(u'\xa0', u' ') == "Chassis Type" \
+                and value == "":
+                target_folder[folder_name]["Chassis Info"] = False
 
             # there may some conments are under the chart, should be ignored
             if (j-2 != len(updated_json_table)):

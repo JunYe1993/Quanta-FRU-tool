@@ -104,6 +104,33 @@ ini_key_m3_table = {
     "PD Custom Field 3(Y/N)"            : "Y",
 }
 
+ipmi_chassis_type = {
+    ""                      : "00h", # self made
+    "OTHER"                 : "01h",
+    "UNKNOWN"               : "02h",
+    "DESKTOP"               : "03h",
+    "LOW PROFILE DESKTOP"   : "04h",
+    "PIZZA BOX"             : "05h",
+    "MINI TOWER"            : "06h",
+    "TOWER"                 : "07h",
+    "PORTABLE"              : "08h",
+    "LAPTOP"                : "09h",
+    "NOTEBOOK"              : "0Ah",
+    "HAND HELD"             : "0Bh",
+    "DOCKING STATION"       : "0Ch",
+    "ALL IN ONE"            : "0Dh",
+    "SUB NOTEBOOK"          : "0Eh",
+    "SPACE SAVING"          : "0Fh",
+    "LUNCH BOX"             : "10h",
+    "MAIN SERVER CHASSIS"   : "11h",
+    "EXPANSION CHASSIS"     : "12h",
+    "SUBCHASSIS"            : "13h",
+    "BUS EXPANSION CHASSIS" : "14h",
+    "PERIPHERAL CHASSIS"    : "15h",
+    "RAID CHASSIS"          : "16h",
+    "RACK MOUNT CHASSIS"    : "17h",
+}
+
 tags = {
     "[M3 defined]",
     "[not defined]",
@@ -115,8 +142,8 @@ def get_value(key, value, FRU):
     # base on new key (key_change_table's value)
     # there some exception need to change value
     if key == "Chassis Type":
-        # Rack Mount Chassis = 17h
-        return "17h"
+        value = parentheses_off(value).upper()
+        return ipmi_chassis_type[value]
 
     elif key.find("Chassis Custom Field") != -1:
         # normally this value equal to "CPU serial"
