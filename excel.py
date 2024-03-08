@@ -2,6 +2,7 @@
 import sys, re
 import xlrd
 import json
+from toolconfig import PROJECT_NAME
 from toolconfig import NO_SUB_FOLDER_ROW
 from toolconfig import MERGE_KEY_LIST
 from toolconfig import SUB_FOLDER_KEY
@@ -39,6 +40,7 @@ row_json_table = [
     "Product Custom Data 2",
     "Product Custom Data 3",
     "",
+    "PCBA QPN", # Just for dickhead.
 ]
 
 updated_json_table = []
@@ -49,6 +51,8 @@ ignore_columns = [
     "Product Info Area"
 ]
 
+folder_name_index = 0
+folder_proj_name_index = 1
 folder_name_table = {
 }
 
@@ -139,21 +143,25 @@ def output_json(worksheet):
     target_folder = {}
     for i in range(1, worksheet.ncols):
 
+        folder_row = 1
         # remove full-width space
-        folder = worksheet.cell_value(0, i).strip().replace(u'\xa0', u' ')
+        folder = worksheet.cell_value(folder_row, i).strip().replace(u'\xa0', u' ')
         # remove typesetting space, tab, and newline characters
         folder = re.sub(r'\s+', ' ', folder)
 
-        folder_name = folder_name_table[folder]
+        # folder_name_index      = 1
+        # folder_proj_name_index = 2
+        folder_name = folder_name_table[folder][folder_name_index]
         target_folder[folder_name] = {}
         target_folder[folder_name]["Chassis Info"] = True
+        target_folder[folder_name]["Project Name"] = folder_name_table[folder][folder_proj_name_index]
 
         folder_data = {}
-        folder_data[SUB_FOLDER_KEY] = worksheet.cell_value(1, i).strip().replace(u'\xa0', u' ')
+        folder_data[SUB_FOLDER_KEY] = worksheet.cell_value(folder_row+1, i).strip().replace(u'\xa0', u' ')
         if NO_SUB_FOLDER_ROW:
             folder_data[SUB_FOLDER_KEY] = ""
 
-        for j in range(1, worksheet.nrows):
+        for j in range(folder_row+2, worksheet.nrows):
             value = worksheet.cell_value(j, i).strip().replace(u'\xa0', u' ')
             value = value_check(value)
 
@@ -161,7 +169,7 @@ def output_json(worksheet):
             if value == "no chassis information":
                 target_folder[folder_name]["Chassis Info"] = False
                 value = ""
-            # someone just dont like to fill "no chassis information"
+            # there is one dickhead just dont like to fill "no chassis information"
             # judge by no input in Chassis Type
             elif worksheet.cell_value(j, 0).strip().replace(u'\xa0', u' ') == "Chassis Type" \
                 and value == "":

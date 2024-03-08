@@ -16,7 +16,7 @@ def get_target():
             if name == "ict_tool.py":
                 continue
             else:
-                targets.append("%s_%s_FRU" % (PROJECT_NAME, name))
+                targets.append("%s_FRU" % (name))
     return targets
 
 def get_folder():
@@ -93,7 +93,7 @@ if __name__ == "__main__":
         for target in targets:
             if folder.find(target) != -1:
                 binfiles = get_bin(folder)
-                move_to_ICT(binfiles, target)
+                move_to_ICT(binfiles, folder[:-5])
 
     exec_a_out()
     get_zip()

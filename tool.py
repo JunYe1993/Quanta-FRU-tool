@@ -48,7 +48,7 @@ def folder(config):
     # copy folder from prototype
     for name in config:
         folder = "prototype/chassis" if config[name]["Chassis Info"] else "prototype/no_chassis"
-        targetname = "%s_%s_FRU_v001" % (PROJECT_NAME, name)
+        targetname = "%s_%s_FRU_v001" % (config[name]["Project Name"], name)
         # copy
         command = "cp -r %s %s" % (folder, targetname)
         process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
@@ -61,7 +61,7 @@ def folder(config):
 def get_folder():
     folders = {}
     for raw in glob.glob("*"):
-        pattern = PROJECT_NAME + r'_(.+)_FRU_v[0-9]+'
+        pattern = r'_(.+)_FRU_v[0-9]+'
         x = re.search(pattern, raw)
         if (os.path.isdir(raw) and x):
             folders[x.group(1)] = raw
@@ -230,6 +230,7 @@ def get_procedure(fru):
             return "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-xx/device/xx-00xx/eeprom"
 
 def update_note(line, FRU, update_list={}):
+    # TODO : these two can be replace by Marker
     pattern_version = r'v[0-9].[0-9]{2}'
     pattern_date = r'[0-9]{4}/[0-9]{2}/[0-9]{2}'
 
@@ -275,7 +276,7 @@ def update_release_note(folder, fru_config, FRU):
         msg = " updated." if isupdated else " already updated."
         showMsg(note + " > data" + msg, isupdated)
 
-        new_name = "%s/%s%s" % (os.path.dirname(note), PROJECT_NAME, os.path.basename(note))
+        new_name = "%s/%s" % (os.path.dirname(note), os.path.basename(note))
         os.rename(note, new_name)
 
 def update_script(folder, fru_config):
