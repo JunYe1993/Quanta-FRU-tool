@@ -85,6 +85,7 @@ def check_argv():
 
 def check_row_name(worksheet):
 
+    global updated_json_table
     area = ""
     for i in range(2, worksheet.nrows):
         data = parentheses_off(worksheet.cell_value(i, 0))
@@ -139,6 +140,7 @@ def value_check(value):
 
 def output_json(worksheet):
 
+    global updated_json_table
     output = {}
     target_folder = {}
     for i in range(1, worksheet.ncols):

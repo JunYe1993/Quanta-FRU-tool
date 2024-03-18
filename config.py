@@ -145,6 +145,11 @@ def get_value(key, value, FRU):
         value = parentheses_off(value).upper()
         return ipmi_chassis_type[value]
 
+    elif key == "Chassis Serial Number":
+        # It might get "M3 ODM_PROGRAM" value like Chassis Custom Field
+        # original this key has to fill in M3, so nothing happen
+        return ""
+
     elif key.find("Chassis Custom Field") != -1:
         # normally this value equal to "CPU serial"
         # when need to be filled on M3 status
