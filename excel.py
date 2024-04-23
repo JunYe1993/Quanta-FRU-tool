@@ -56,6 +56,8 @@ folder_proj_name_index = 1
 folder_name_table = {
 }
 
+excel_offset = 3
+
 def parentheses_off(string):
 
     string = string.replace('\n', '')
@@ -87,7 +89,7 @@ def check_row_name(worksheet):
 
     global updated_json_table
     area = ""
-    for i in range(2, worksheet.nrows):
+    for i in range(excel_offset, worksheet.nrows):
         data = parentheses_off(worksheet.cell_value(i, 0))
         data = data.strip().replace(u'\xa0', u' ')
         data = data.replace("  ", " ")
@@ -178,10 +180,10 @@ def output_json(worksheet):
                 target_folder[folder_name]["Chassis Info"] = False
 
             # there may some conments are under the chart, should be ignored
-            if (j-2 != len(updated_json_table)):
+            if (j-excel_offset != len(updated_json_table)):
                 # some column set to be ignored
-                if updated_json_table[j-2] not in ignore_columns:
-                    folder_data[updated_json_table[j-2]] = value
+                if updated_json_table[j-excel_offset] not in ignore_columns:
+                    folder_data[updated_json_table[j-excel_offset]] = value
             else:
                 break
 
