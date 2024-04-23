@@ -130,10 +130,6 @@ def value_check(value):
     if re.search(pattern, value):
         return ""
 
-    pattern = r'ODM_DEFINE'
-    if re.search(pattern, value):
-        return ""
-
     pattern = r'N/A'
     if re.search(pattern, value):
         return ""

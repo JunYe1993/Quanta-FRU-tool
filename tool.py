@@ -28,11 +28,18 @@ INI_LEN_MARK = "#LEN_Marker"
 TXT_VAL_MARK = "#VAL_Marker"
 
 showMsgEnable = False
-MODES = ["M1/", "M3/"]
+MODES = ["M1/", "M3/", "M5/"]
+configs = {}
+folders = {}
 
 def showMsg(msg, enable=showMsgEnable):
     if enable:
         print(msg)
+
+def remove_folder(dir):
+    command = "rm -r %s" % dir
+    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
+    output, error = process.communicate()
 
 def folder(config):
 
@@ -41,9 +48,7 @@ def folder(config):
         pattern = r'_(.*)_FRU_v[0-9]+'
         x = re.search(pattern, raw)
         if os.path.isdir(raw) and x != None:
-            command = "rm -r %s" % raw
-            process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-            output, error = process.communicate()
+            remove_folder(raw)
 
     # copy folder from prototype
     for name in config:
@@ -82,7 +87,10 @@ def get_part_numbers(fru_config={}):
         showMsg("Can't find %s in fru_config" % FRU_PART_NUMBER_KEY, True)
         exit()
 
-def match_file_number(folder, fru_config):
+def match_file_number(FRU):
+    folder = folders[FRU]
+    fru_config = configs["mainData"][FRU]
+
     # copy file to match number of part_numbers
     part_numbers_n = len(get_part_numbers(fru_config))
 
@@ -133,7 +141,9 @@ def update_txt_data(file, line, update_list={}):
     else:
         return line
 
-def update_txt_files(folder, fru_config):
+def update_txt_files(FRU):
+    folder = folders[FRU]
+    fru_config = configs["mainData"][FRU]
 
     for mode in MODES:
 
@@ -151,13 +161,10 @@ def update_txt_files(folder, fru_config):
                 temp_FruConfig[key] = fru_config[key][part_number_index]
 
             context = ""
-            isupdated = False
             for line in open(file, "r"):
-                newline = update_txt_data(file, line, temp_FruConfig)
-                if line != newline:
-                    line = newline
-                    isupdated = True
+                line = update_txt_data(file, line, temp_FruConfig)
                 context += line
+
             fd = open(file, "w")
             fd.write(context)
             part_number_index += 1
@@ -191,17 +198,20 @@ def update_ini_data(file, line, update_list={}):
             line = line.replace(INI_LEN_MARK, "0:63")
     return line
 
-def update_ini_files(folder, fru_config):
+def update_ini_files(FRU, ini_key):
+    folder = folders[FRU]
+    ini_config = configs[ini_key][FRU]
 
-    files = get_ini_files(folder, fru_config["mode"])
+    if ini_config["enable"] == False:
+        remove_folder('%s/FRU/%s' % (folder, ini_config["mode"]))
+        remove_folder('%s/linux/FRU_Writer/%s' % (folder, ini_config["mode"]))
+        return
+
+    files = get_ini_files(folder, ini_config["mode"])
     for file in files:
         context = ""
-        isupdated = False
         for line in open(file, "r"):
-            newline = update_ini_data(file, line, fru_config)
-            if line != newline:
-                line = newline
-                isupdated = True
+            line = update_ini_data(file, line, ini_config)
             context += line
         fd = open(file, "w")
         fd.write(context)
@@ -260,26 +270,28 @@ def update_note(line, FRU, update_list={}):
 
     return line
 
-def update_release_note(folder, fru_config, FRU):
+def update_release_note(FRU):
+    folder = folders[FRU]
+    fru_config = configs["mainData"][FRU]
+
     # expected only one file
     for note in get_ReleaseNote(folder):
         context = ""
-        isupdated = False
         for line in open(note, "r"):
-            newline = update_note(line, FRU, fru_config)
-            if line != newline:
-                line = newline
-                isupdated = True
+            line = update_note(line, FRU, fru_config)
             context += line
+
         fd = open(note, "w")
         fd.write(context)
-        msg = " updated." if isupdated else " already updated."
-        showMsg(note + " > data" + msg, isupdated)
+        showMsg(note + " > data updated")
 
         new_name = "%s/%s" % (os.path.dirname(note), os.path.basename(note))
         os.rename(note, new_name)
 
-def update_script(folder, fru_config):
+def update_script(FRU):
+    folder = folders[FRU]
+    fru_config = configs["mainData"][FRU]
+
     # update file name folder/linux/**/*.sh
     for mode in MODES:
         pn_index = 0
@@ -294,7 +306,10 @@ def update_script(folder, fru_config):
             os.rename(script, new_name)
             pn_index += 1
 
-def update_folder_name(folder, fru_config):
+def update_folder_name(FRU):
+    folder = folders[FRU]
+    fru_config = configs["mainData"][FRU]
+
     # update folder name folder/FRU/**/*
     folder_names = get_txt_files(folder)
     for name in folder_names:
@@ -313,7 +328,10 @@ def get_fru_version(config={}):
         return x.group(0).replace(".", "")
     return None
 
-def update_folder_fru_version(folder, version):
+def update_folder_fru_version(FRU):
+    folder = folders[FRU]
+    version = get_fru_version(configs["mainData"][FRU])
+
     if version == "xxx": return
 
     # update file name /folder/Release Note.txt
@@ -330,18 +348,21 @@ def update_folder_fru_version(folder, version):
     showMsg(new_name + " > name updated.", True)
 
 def update(config):
+    global configs, folders
+    configs = config
     folders = get_folder()
-    for FRU in config["txt"]:
-        if folders.get(FRU):
-            match_file_number(folders[FRU], config["txt"][FRU])
-            update_txt_files(folders[FRU], config["txt"][FRU])
-            update_ini_files(folders[FRU], config["m1_ini"][FRU])
-            update_ini_files(folders[FRU], config["m3_ini"][FRU])
-            update_release_note(folders[FRU], config["txt"][FRU], FRU)
-            update_script(folders[FRU], config["txt"][FRU])
-            update_folder_name(folders[FRU], config["txt"][FRU])
-            update_folder_fru_version(folders[FRU], get_fru_version(config["txt"][FRU]))
 
+    for FRU in config["mainData"]:
+        if folders.get(FRU):
+            match_file_number(FRU)
+            update_txt_files(FRU)
+            update_ini_files(FRU, "m1_ini")
+            update_ini_files(FRU, "m3_ini")
+            update_ini_files(FRU, "m5_ini")
+            update_release_note(FRU)
+            update_script(FRU)
+            update_folder_name(FRU)
+            update_folder_fru_version(FRU)
 
 def get_zip():
     # get file name

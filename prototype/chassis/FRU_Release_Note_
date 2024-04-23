@@ -30,6 +30,13 @@ Example procedure:
      (4) scp fru.bin into openbmc
      (5) Execute "#PRC_Marker" in openbmc
 
+   3. Programming FRU for #FRU_Marker M5:
+     (1) Move or Copy "linux/FRU_Writer/M3/fru.bin" to "linux/FRU_Writer/M5/fru.bin"
+     (2) Change directory to "linux/FRU_Writer/M5"
+     (3) Execute "./#QPN_Marker.sh fru.bin"
+     (4) scp fru.bin into openbmc
+     (5) Execute "#PRC_Marker" in openbmc
+
 Changed/Added:
   1. Add FRU files for M1 and M3:
      (1) #QPN_Marker

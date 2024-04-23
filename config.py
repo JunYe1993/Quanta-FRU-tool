@@ -40,6 +40,7 @@ key_change_table = {
 
 ini_key_m1_table = {
     "mode":"M1",
+    "enable":True,
     "Read EEPROM fru data(Y/N)"         : "N",
     "Write FRU Bin file to EEPROM(Y/N)" : "N",
     "Write FRU Txt file to EEPROM(Y/N)" : "Y",
@@ -73,6 +74,7 @@ ini_key_m1_table = {
 
 ini_key_m3_table = {
     "mode":"M3",
+    "enable":True,
     "Read EEPROM fru data(Y/N)"         : "N",
     "Write FRU Bin file to EEPROM(Y/N)" : "Y",
     "Write FRU Txt file to EEPROM(Y/N)" : "Y",
@@ -104,6 +106,40 @@ ini_key_m3_table = {
     "PD Custom Field 3(Y/N)"            : "Y",
 }
 
+ini_key_m5_table = {
+    "mode":"M5",
+    "enable":False,
+    "Read EEPROM fru data(Y/N)"         : "N",
+    "Write FRU Bin file to EEPROM(Y/N)" : "Y",
+    "Write FRU Txt file to EEPROM(Y/N)" : "Y",
+    "FRU 2 Use(Y/N)"                    : "N",
+    "FRU 3 Use(Y/N)"                    : "N",
+    "Internal Use Data(Y/N)"            : "N",
+    "Chassis Part Number(Y/N)"          : "N",
+    "Chassis Serial Number(Y/N)"        : "N",
+    "Chassis Custom Field 1(Y/N)"       : "N",
+    "Chassis Custom Field 2(Y/N)"       : "N",
+    "M/B Manufacturer Name(Y/N)"        : "N",
+    "M/B Product Name(Y/N)"             : "N",
+    "M/B Serial Number(Y/N)"            : "N",
+    FRU_PART_NUMBER_KEY+"(Y/N)"         : "N",
+    FRU_VERSION_KEY+"(Y/N)"             : "N",
+    FRU_FBPN_KEY+"(Y/N)"                : "N",
+    "M/B Custom Field 2(Y/N)"           : "N",
+    "M/B Custom Field 3(Y/N)"           : "N",
+    "M/B Custom Field 4(Y/N)"           : "N",
+    "PD Manufacturer Name(Y/N)"         : "N",
+    "PD Product Name(Y/N)"              : "N",
+    "PD Part/Model Number(Y/N)"         : "N",
+    "PD Version(Y/N)"                   : "N",
+    "PD Serial Number(Y/N)"             : "N",
+    "PD Asset Tag(Y/N)"                 : "N",
+    "PD Fru File ID(Y/N)"               : "N",
+    "PD Custom Field 1(Y/N)"            : "N",
+    "PD Custom Field 2(Y/N)"            : "N",
+    "PD Custom Field 3(Y/N)"            : "N",
+}
+
 ipmi_chassis_type = {
     ""                      : "00h", # self made
     "OTHER"                 : "01h",
@@ -133,6 +169,7 @@ ipmi_chassis_type = {
 
 tags = {
     "[M3 defined]",
+    "[M5 defined]",
     "[not defined]",
 }
 
@@ -145,12 +182,9 @@ def get_value(key, value, FRU):
         value = parentheses_off(value).upper()
         return ipmi_chassis_type[value]
 
-    elif key == "Chassis Serial Number":
-        # It might get "M3 ODM_PROGRAM" value like Chassis Custom Field
-        # original this key has to fill in M3, so nothing happen
-        return ""
-
-    elif key.find("Chassis Custom Field") != -1:
+    # old fashion way to fill in M3
+    elif key.find("Chassis Custom Field") != -1 and \
+            value.find("CPU serial") != -1:
         # normally this value equal to "CPU serial"
         # when need to be filled on M3 status
         return "[M3 defined]" if value != "" else ""
@@ -215,10 +249,24 @@ def get_value(key, value, FRU):
         return ret
 
     else:
+        # check if value need to be filled in specific mode
+        ODMstr = value.strip()
+        ODMstr = ODMstr.replace('_', ' ')
+        ODMstr = ODMstr.replace('-', ' ')
+
+        if ODMstr.find("M3 ODM PROGRAM") != -1 or \
+            ODMstr.find("M3 ODM DEFINE") != -1:
+            return "[M3 defined]"
+        elif ODMstr.find("M5 ODM PROGRAM") != -1 or \
+            ODMstr.find("M5 ODM DEFINE") != -1:
+            return "[M5 defined]"
+
+        # check if key originally in specific mode
         ini_key = key + "(Y/N)"
         if ini_key_m1_table.get(ini_key) != None:
             if ini_key_m1_table[ini_key] == "Y" or \
-                ini_key_m3_table[ini_key] == "Y":
+                ini_key_m3_table[ini_key] == "Y" or \
+                ini_key_m5_table[ini_key] == "Y":
                 if value not in tags:
                     value = ""
         return value
@@ -239,41 +287,59 @@ def key_change(config):
 
     return newConfig
 
-def ini_value_check(config, key, table):
-    table_key = key + "(Y/N)"
-    if table.get(table_key) != None:
-        if config[key] == "[not defined]":
-            table[table_key] = "N"
-        elif config[key] == "[M3 defined]" and table["mode"] == "M3":
-            table[table_key] = "Y"
+def get_ini_config(config):
 
-    return table
+    m1_config = {}
+    m3_config = {}
+    m5_config = {}
 
-def get_ini_config(ini_table, config):
-    ret_config = {}
     for FRU in config:
-        ret_table = ini_table.copy()
+        m1_table = ini_key_m1_table.copy()
+        m3_table = ini_key_m3_table.copy()
+        m5_table = ini_key_m5_table.copy()
+
         for key in config[FRU]:
-            ret_table = ini_value_check(config[FRU], key, ret_table)
-        # del ret_table["mode"]
-        ret_config[FRU] = ret_table
-    return ret_config
+            tablekey = key + "(Y/N)"
+            # if ini don't have this key, skip
+            if m1_table.get(tablekey) == None:
+                continue
+
+            if config[FRU][key] == "[not defined]":
+                m1_table[tablekey] = "N"
+                m3_table[tablekey] = "N"
+                m5_table[tablekey] = "N"
+            elif config[FRU][key] == "[M3 defined]":
+                m1_table[tablekey] = "N"
+                m3_table[tablekey] = "Y"
+                m5_table[tablekey] = "N"
+            elif config[FRU][key] == "[M5 defined]":
+                m1_table[tablekey] = "N"
+                m3_table[tablekey] = "N"
+                m5_table[tablekey] = "Y"
+                # if format is M5 defined, then enable M5
+                m5_table["enable"] = True
+
+        m1_config[FRU] = m1_table
+        m3_config[FRU] = m3_table
+        m5_config[FRU] = m5_table
+
+    return m1_config, m3_config, m5_config
 
 def read_config(filename):
     with open ("excel_raw_output.json", 'r', encoding='utf-8') as f:
         # create main config
-        txt_config = json.load(f)
-        txt_config = key_change(txt_config)
+        data_config = json.load(f)
+        data_config = key_change(data_config)
 
         # create ini config
-        ini_m1_config = get_ini_config(ini_key_m1_table, txt_config)
-        ini_m3_config = get_ini_config(ini_key_m3_table, txt_config)
+        ini_m1_config, ini_m3_config, ini_m5_config = get_ini_config(data_config)
 
         # merge config
         config = {}
-        config["txt"] = txt_config
+        config["mainData"] = data_config
         config["m1_ini"] = ini_m1_config
         config["m3_ini"] = ini_m3_config
+        config["m5_ini"] = ini_m5_config
         return config
 
 def dump(config, name="dump.json"):
@@ -286,6 +352,7 @@ def read(file):
 
 if __name__ == "__main__":
     config = read_config("excel_raw_output.json")
-    dump(config["txt"], "txt_dump.json")
+    dump(config["mainData"], "data_dump.json")
     dump(config["m1_ini"], "ini_m1_dump.json")
     dump(config["m3_ini"], "ini_m3_dump.json")
+    dump(config["m5_ini"], "ini_m5_dump.json")

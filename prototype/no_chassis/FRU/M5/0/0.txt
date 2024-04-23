@@ -1,0 +1,29 @@
+--------------------------------------------------
+Board Info Area
+--------------------------------------------------
+     M/B Language Code          = "#VAL_Marker"
+     M/B Manufacturer Date/Time = "#VAL_Marker"
+     M/B Manufacturer Name      = "#VAL_Marker"
+     M/B Product Name           = "#VAL_Marker"
+     M/B Serial Number          = "#VAL_Marker"
+     M/B Part Number            = "#VAL_Marker"
+     M/B Fru File ID            = "#VAL_Marker"
+     M/B Custom Field 1         = "#VAL_Marker"
+     M/B Custom Field 2         = "#VAL_Marker"
+     M/B Custom Field 3         = "#VAL_Marker"
+     M/B Custom Field 4         = "#VAL_Marker"
+--------------------------------------------------
+Product Info Area
+--------------------------------------------------
+     PD Language Code           = "#VAL_Marker"
+     PD Manufacturer Name       = "#VAL_Marker"
+     PD Product Name            = "#VAL_Marker"
+     PD Part/Model Number       = "#VAL_Marker"
+     PD Version                 = "#VAL_Marker"
+     PD Serial Number           = "#VAL_Marker"
+     PD Asset Tag               = "#VAL_Marker"
+     PD Fru File ID             = "#VAL_Marker"
+     PD Custom Field 1          = "#VAL_Marker"
+     PD Custom Field 2          = "#VAL_Marker"
+     PD Custom Field 3          = "#VAL_Marker"
+--------------------------------------------------
