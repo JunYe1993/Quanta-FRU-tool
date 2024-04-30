@@ -1,8 +1,11 @@
 import os, sys, glob, subprocess
 import re
+from datetime import date
+
+import config as config_reader
 from toolconfig import PROJECT_NAME
 from toolconfig import DEVELOP_STAGE
-from datetime import date
+
 
 rootpath = "ICT/"
 tool = rootpath + "a.out"
@@ -40,17 +43,30 @@ def clean_last():
             process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
 
-def get_bin(folder):
+def get_bin(folder, target):
     binfiles = {}
     path = folder + "/linux/FRU_Writer/M1/"
+    ini = config_reader.read_config("excel_raw_output.json")
+    ini = ini["m1_ini"][target.replace("_FRU", "")]
     os.chdir(path)
     for script in glob.glob("*.sh"):
         head, tail = os.path.split(script)
         root, ext  = os.path.splitext(tail)
         proc = subprocess.Popen(["./" + script, root + ".bin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        proc.stdin.write('123456789012345\n'.encode())
-        proc.stdin.write('1234567\n'.encode())
-        proc.stdin.write('12345\n'.encode())
+
+        for key in ini.keys():
+            if key.find("(Y/N)") != -1 and ini[key] == "Y" and \
+                key.find("Write FRU Txt file to EEPROM") == -1:
+
+                if key == "M/B Serial Number(Y/N)":
+                    proc.stdin.write('123456789012345\n'.encode())
+                elif key == "M/B Custom Field 2(Y/N)":
+                    proc.stdin.write('1234567\n'.encode())
+                elif key == "M/B Custom Field 3(Y/N)":
+                    proc.stdin.write('12345\n'.encode())
+                else:
+                    proc.stdin.write('ff:ff:ff:ff:ff:ff\n'.encode())
+
         proc.stdin.close()
         proc.wait()
         binfiles[root+".bin"] = path+root+".bin"
@@ -92,7 +108,7 @@ if __name__ == "__main__":
     for folder in folders:
         for target in targets:
             if folder.find(target) != -1:
-                binfiles = get_bin(folder)
+                binfiles = get_bin(folder, target)
                 move_to_ICT(binfiles, folder[:-5])
 
     exec_a_out()

@@ -168,6 +168,7 @@ ipmi_chassis_type = {
 }
 
 tags = {
+    "[M1 defined]",
     "[M3 defined]",
     "[M5 defined]",
     "[not defined]",
@@ -254,7 +255,10 @@ def get_value(key, value, FRU):
         ODMstr = ODMstr.replace('_', ' ')
         ODMstr = ODMstr.replace('-', ' ')
 
-        if ODMstr.find("M3 ODM PROGRAM") != -1 or \
+        if ODMstr.find("M1 ODM PROGRAM") != -1 or \
+            ODMstr.find("M1 ODM DEFINE") != -1:
+            return "[M1 defined]"
+        elif ODMstr.find("M3 ODM PROGRAM") != -1 or \
             ODMstr.find("M3 ODM DEFINE") != -1:
             return "[M3 defined]"
         elif ODMstr.find("M5 ODM PROGRAM") != -1 or \
@@ -306,6 +310,10 @@ def get_ini_config(config):
 
             if config[FRU][key] == "[not defined]":
                 m1_table[tablekey] = "N"
+                m3_table[tablekey] = "N"
+                m5_table[tablekey] = "N"
+            if config[FRU][key] == "[M1 defined]":
+                m1_table[tablekey] = "Y"
                 m3_table[tablekey] = "N"
                 m5_table[tablekey] = "N"
             elif config[FRU][key] == "[M3 defined]":
