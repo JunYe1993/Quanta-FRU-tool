@@ -1,42 +1,13 @@
 import re, json
 from excel import parentheses_off
+from toolconfig import get_fru_key
 from toolconfig import SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import FRU_VERSION_KEY
 from toolconfig import FRU_FBPN_KEY
+from toolconfig import MERGE_FRU_KEY_LIST
 
-key_change_table = {
-    SUB_FOLDER_KEY      : SUB_FOLDER_KEY,
-    "Chassis Type"          : "Chassis Type",
-    "Chassis Part Number"   : "Chassis Part Number",
-    "Chassis Serial Number" : "Chassis Serial Number",
-    "Chassis Custom Data 1" : "Chassis Custom Field 1",
-    "Chassis Custom Data 2" : "Chassis Custom Field 2",
 
-    "Board Language Code"   : "M/B Language Code",
-    "Board Mfg Date"        : "M/B Manufacturer Date/Time",
-    "Board Mfg"             : "M/B Manufacturer Name",
-    "Board Product"         : "M/B Product Name",
-    "Board Serial"          : "M/B Serial Number",
-    "Board Part Number"     : FRU_PART_NUMBER_KEY, # "M/B Fru File ID"
-    "Board FRU ID"          : FRU_VERSION_KEY,     # "M/B Part Number"
-    "Board Custom Data 1"   : FRU_FBPN_KEY,        # "M/B Custom Field 1"
-    "Board Custom Data 2"   : "M/B Custom Field 2",
-    "Board Custom Data 3"   : "M/B Custom Field 3",
-    "Board Custom Data 4"   : "M/B Custom Field 4",
-
-    "Product Language Code" : "PD Language Code",
-    "Product Manufacturer"  : "PD Manufacturer Name",
-    "Product Name"          : "PD Product Name",
-    "Product Part Number"   : "PD Part/Model Number",
-    "Product Version"       : "PD Version",
-    "Product Serial"        : "PD Serial Number",
-    "Product Asset Tag"     : "PD Asset Tag",
-    "Product FRU ID"        : "PD Fru File ID",
-    "Product Custom Data 1" : "PD Custom Field 1",
-    "Product Custom Data 2" : "PD Custom Field 2",
-    "Product Custom Data 3" : "PD Custom Field 3",
-}
 
 ini_key_m1_table = {
     "mode":"M1",
@@ -237,7 +208,7 @@ def get_value(key, value, FRU):
         # Remove "(english)"
         return parentheses_off(value)
 
-    elif key == FRU_FBPN_KEY:
+    elif key in MERGE_FRU_KEY_LIST:
         # for board merge
         if len(FBPN_NUMBER_LIST[FRU]) != len(value):
             print("excel proccess went wrong, FBPN_NUMBER_LIST length not matching")
@@ -282,8 +253,8 @@ def key_change(config):
         # TODO: someday needs to fix that PART NUMBER (FRU_PART_NUMBER_KEY)
         #       should be the first key for board merging
         for key in config[FRU].keys():
-            if key_change_table.get(key) and key != "":
-                newKey = key_change_table[key]
+            if get_fru_key(key) and key != "":
+                newKey = get_fru_key(key)
                 newConfig[FRU][newKey] = get_value(newKey, config[FRU][key], FRU)
         # for some PM or early stage that may not have SUB_FOLDER_KEY filled
         if len(newConfig[FRU][SUB_FOLDER_KEY]) == 0:
