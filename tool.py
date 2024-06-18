@@ -149,7 +149,6 @@ def update_txt_files(FRU):
 
         part_number_index = 0
         files = get_txt_files(folder, mode)
-        files.sort()
 
         for file in files:
             if len(fru_config[FRU_PART_NUMBER_KEY]) == 0:
@@ -314,8 +313,8 @@ def update_folder_name(FRU):
     folder_names = get_txt_files(folder)
     for name in folder_names:
         index, file = os.path.split(name)
-        null, index = os.path.split(index)
-        index = int(index) % len(fru_config[SUB_FOLDER_KEY])
+        file,  base = os.path.splitext(file)
+        index = fru_config[FRU_PART_NUMBER_KEY].index(file)
         old = os.path.dirname(name)
         new = os.path.dirname(old)+"/"+fru_config[SUB_FOLDER_KEY][index]
         os.rename(old, new)

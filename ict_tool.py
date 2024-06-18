@@ -108,6 +108,7 @@ if __name__ == "__main__":
     for folder in folders:
         for target in targets:
             if folder.find(target) != -1:
+                print("Processing folder: %s" % (folder))
                 binfiles = get_bin(folder, target)
                 move_to_ICT(binfiles, folder[:-5])
 
