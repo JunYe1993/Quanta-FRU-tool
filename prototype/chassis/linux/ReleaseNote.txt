@@ -2,10 +2,26 @@ bmcfwtool
 -----------
 
 ---------------------------------
+Revision: 0.10.03
+Date: 05/12/2023
+---------------------------------
+ - To support more custom fields.
+   Chassis Custom Field 3
+   Chassis Custom Field 4
+   M/B Custom Field 4
+   M/B Custom Field 5
+   M/B Custom Field 6
+   PD Custom Field 4
+   PD Custom Field 5
+   PD Custom Field 6
+ - Correct UNIX Timestamp 1996.
+ - Automatically increase the bin file size in multiples of 256 bytes, up to 2048 bytes.
+
+---------------------------------
 Revision: 0.10.02
 Date: 09/30/2015
 ---------------------------------
- - Add sub-function, "bin", for "fru" function to generate FRU data only. 
+ - Add sub-function, "bin", for "fru" function to generate FRU data only.
 
 ---------------------------------
 Revision: 0.10.00
