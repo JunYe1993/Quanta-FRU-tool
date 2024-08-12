@@ -85,6 +85,23 @@ def check_argv():
         print("usage: python3 %s filename.xlsx" % sys.argv[0])
         exit()
 
+def get_worksheet(workbook):
+    
+    sheetnames = workbook.sheet_names()
+    if len(sheetnames) == 0:
+        print("There is no sheet in the excel file.")
+        exit()
+    elif len(sheetnames) == 1:
+        print("There is only one sheet in the excel file.")
+        return workbook.sheet_by_index(0)
+    else:
+        for sheetname in sheetnames:
+            if sheetname.find("FRU") == -1:
+                return workbook.sheet_by_name(sheetname)
+            
+    print("There is no sheet named FRU in the excel file.")
+    exit()
+
 def check_row_name(worksheet):
 
     global updated_json_table
@@ -206,7 +223,7 @@ if __name__ == "__main__":
 
     # Open the excel
     workbook = xlrd.open_workbook(sys.argv[1])
-    worksheet = workbook.sheet_by_index(0)
+    worksheet = get_worksheet(workbook)
 
     # Check data
     check_row_name(worksheet)
