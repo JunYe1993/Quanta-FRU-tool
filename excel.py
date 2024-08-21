@@ -96,7 +96,7 @@ def get_worksheet(workbook):
         return workbook.sheet_by_index(0)
     else:
         for sheetname in sheetnames:
-            if sheetname.find("FRU") == -1:
+            if sheetname.find("FRU") != -1:
                 return workbook.sheet_by_name(sheetname)
             
     print("There is no sheet named FRU in the excel file.")
