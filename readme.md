@@ -5,7 +5,7 @@
 - Reqirement
 
     1. python3
-    2. python3 module: xlrd
+    2. python3 module: xlrd v1.2.0
 
 - Config
 
