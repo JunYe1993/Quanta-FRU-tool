@@ -66,9 +66,11 @@ def folder(config):
 def get_folder():
     folders = {}
     for raw in glob.glob("*"):
-        pattern = r'_(.+)_FRU_v[0-9]+'
-        x = re.search(pattern, raw)
-        if (os.path.isdir(raw) and x):
+        if not os.path.isdir(raw):
+            continue
+        pattern = r'_(.+)_FRU_v[0-9]+$'
+        x = re.search(pattern, raw.replace(PROJECT_NAME, ''))
+        if x != None:
             folders[x.group(1)] = raw
     return folders
 
@@ -362,6 +364,8 @@ def update(config):
             update_script(FRU)
             update_folder_name(FRU)
             update_folder_fru_version(FRU)
+        else:
+            showMsg("Can't find %s folder" % FRU, True)
 
 def get_zip():
     # get file name
