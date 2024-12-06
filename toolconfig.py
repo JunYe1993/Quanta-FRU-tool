@@ -2,18 +2,12 @@
 import json, re
 
 # excel spec
-NO_SUB_FOLDER_ROW = False
 SUB_FOLDER_KEY  = "Sub Folder Name" # TODO : need to rework if some project put in
 MERGE_KEY_LIST = [
     SUB_FOLDER_KEY,
     "Board Part Number",   # FRU_PART_NUMBER_KEY
     "Board Custom Data 1", # FRU_FBPN_KEY
 ]
-
-# config
-PROJECT_BASE = "" # "Meta-OpenBmc", "LF-OpenBmc"
-PROJECT_NAME = ""
-DEVELOP_STAGE = ""
 
 # define
 def get_fru_key(key):
@@ -79,6 +73,10 @@ def parentheses_off(string):
 
     # remove space
     return string.strip()
+
+def read_config_json():
+    with open('config.json', 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 if __name__ == "__main__":
     folder_string = ""

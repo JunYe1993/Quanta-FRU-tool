@@ -3,9 +3,7 @@ import re
 from datetime import date
 
 import config as config_reader
-from toolconfig import PROJECT_NAME
-from toolconfig import DEVELOP_STAGE
-
+from toolconfig import read_config_json
 
 rootpath = "ICT/"
 tool = rootpath + "a.out"
@@ -89,10 +87,12 @@ def exec_a_out():
             process = subprocess.Popen(command.split(), stdout=file)
             output, error = process.communicate()
 
-def get_zip():
+def get_zip(): 
     # get file name
     filedate = date.today().strftime("%Y%m%d")
-    filename = "%s%s_%s_ICT_%s.zip" % (rootpath, PROJECT_NAME, DEVELOP_STAGE, filedate[2:])
+    filename = "%s%s_%s_ICT_%s.zip" % (
+        rootpath, read_config_json()['Project']['Name'], 
+        read_config_json()['Project']['Stage'], filedate[2:])
 
     zipcommand = "zip -r %s %s -x %s -x *.zip" % (filename, rootpath, tool)
     process = subprocess.Popen(zipcommand.split(), stdout=subprocess.PIPE)

@@ -5,16 +5,16 @@ from distutils.dir_util import copy_tree
 
 import config as config_reader
 
+from toolconfig import read_config_json
 from toolconfig import parentheses_off
-
-from toolconfig import PROJECT_BASE
-from toolconfig import PROJECT_NAME
-from toolconfig import DEVELOP_STAGE
 
 from toolconfig import SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import FRU_VERSION_KEY
 from toolconfig import MERGE_FRU_KEY_LIST
+
+PROJECT_NAME = read_config_json()["Project"]["Name"]
+DEVELOP_STAGE = read_config_json()["Project"]["Stage"]
 
 ### Marker
 # non txt and ini files. (ex release_note and bash script ...)
@@ -224,21 +224,10 @@ def get_ReleaseNote(folder):
     return glob.glob(os.path.join(folder, "*FRU_Release_Note*"), recursive=True)
 
 def get_procedure(fru):
-    if PROJECT_BASE == "Meta-OpenBmc":
-        return "fruid-util xxx --write fru.bin"
-    elif PROJECT_BASE == "LF-OpenBmc":
-        target = {
-            "MB"     : [15, 56],
-            "PTTV"   : [15, 50],
-            "PDB"    : [ 4, 52],
-            "MB_SCM" : [29, 54],
-            "MB_BSM" : [ 9, 52]
-        }
-        if fru in target.keys():
-            return "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-%d/device/%d-00%d/eeprom" \
-                        % (target[fru][0], target[fru][0], target[fru][1])
-        else:
-            return "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-xx/device/xx-00xx/eeprom"
+    # TODO: provide an exact string not just xx in config.json
+    config = read_config_json()
+    CopyMethod = config["ReleaseNote"]["CopyMethod"]
+    return config["ReleaseNote"]["CopyMethod-"+CopyMethod]
 
 def update_note(line, FRU, update_list={}):
     # TODO : these two can be replace by Marker

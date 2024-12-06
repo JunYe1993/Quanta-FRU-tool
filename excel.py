@@ -2,10 +2,11 @@
 import sys, re
 import xlrd
 import json
-from toolconfig import PROJECT_NAME
-from toolconfig import NO_SUB_FOLDER_ROW
 from toolconfig import MERGE_KEY_LIST
 from toolconfig import SUB_FOLDER_KEY
+from toolconfig import read_config_json
+from toolconfig import parentheses_off
+config = read_config_json()
 
 row_json_table = [
     "Organization",
@@ -53,26 +54,8 @@ ignore_columns = [
 
 folder_name_index = 0
 folder_proj_name_index = 1
-folder_name_table = {
-}
-
-excel_offset = 3
-
-def parentheses_off(string):
-
-    string = string.replace('\n', '')
-
-    pattern = r'(.*)\(.*\)(.*)'
-    x = re.search(pattern, string)
-    if x != None:
-        string = x.group(1) + x.group(2)
-
-    pattern = r'(.*)\[.*\](.*)'
-    x = re.search(pattern, string)
-    if x != None:
-        string = x.group(1) + x.group(2)
-
-    return string.strip()
+folder_name_table = config['Project']['BoardNames']
+excel_offset = config['Excel']['FRURow']
 
 def check_argv():
 
@@ -124,7 +107,6 @@ def check_row_name(worksheet):
             print("Needs to update JSON table")
             exit()
 
-
 def value_check(value):
 
     pattern = r'\[.*not defined.*\]'
@@ -160,25 +142,33 @@ def output_json(worksheet):
     target_folder = {}
     for i in range(1, worksheet.ncols):
 
-        folder_row = 1
         # remove full-width space
-        folder = worksheet.cell_value(folder_row, i).strip().replace(u'\xa0', u' ')
+        folder = worksheet.cell_value(config['Excel']['FolderRow'], i).strip().replace(u'\xa0', u' ')
         # remove typesetting space, tab, and newline characters
         folder = re.sub(r'\s+', ' ', folder)
 
-        # folder_name_index      = 1
-        # folder_proj_name_index = 2
+        if folder not in folder_name_table:
+            print("Please update the folder name in the config.json")
+            print("Or check Excel section in config.json")
+            exit()
+
+        # folder_name_index      = 0
+        # folder_proj_name_index = 1
+        if len(folder_name_table[folder]) == 1:
+            folder_name_table[folder].append(config['Project']['Name'])
+
         folder_name = folder_name_table[folder][folder_name_index]
         target_folder[folder_name] = {}
         target_folder[folder_name]["Chassis Info"] = True
         target_folder[folder_name]["Project Name"] = folder_name_table[folder][folder_proj_name_index]
 
         folder_data = {}
-        folder_data[SUB_FOLDER_KEY] = worksheet.cell_value(folder_row+1, i).strip().replace(u'\xa0', u' ')
-        if NO_SUB_FOLDER_ROW:
+        if config['Excel']['SubFolderRow'] == None:
             folder_data[SUB_FOLDER_KEY] = ""
+        else:
+            folder_data[SUB_FOLDER_KEY] = worksheet.cell_value(config['Excel']['SubFolderRow'], i).strip().replace(u'\xa0', u' ')
 
-        for j in range(folder_row+2, worksheet.nrows):
+        for j in range(config['Excel']['FRURow'], worksheet.nrows):
             value = worksheet.cell_value(j, i).strip().replace(u'\xa0', u' ')
             value = value_check(value)
 

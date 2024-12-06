@@ -1,13 +1,11 @@
 import re, json
-from excel import parentheses_off
+from toolconfig import parentheses_off
 from toolconfig import get_fru_key
 from toolconfig import SUB_FOLDER_KEY
 from toolconfig import FRU_PART_NUMBER_KEY
 from toolconfig import FRU_VERSION_KEY
 from toolconfig import FRU_FBPN_KEY
 from toolconfig import MERGE_FRU_KEY_LIST
-
-
 
 ini_key_m1_table = {
     "mode":"M1",
@@ -250,9 +248,8 @@ def key_change(config):
     newConfig = {}
     for FRU in config:
         newConfig[FRU] = {}
-        # TODO: someday needs to fix that PART NUMBER (FRU_PART_NUMBER_KEY)
-        #       should be the first key for board merging
-        for key in config[FRU].keys():
+        keys = [FRU_PART_NUMBER_KEY] + [key for key in config[FRU].keys() if key != FRU_PART_NUMBER_KEY]
+        for key in keys:
             if get_fru_key(key) and key != "":
                 newKey = get_fru_key(key)
                 newConfig[FRU][newKey] = get_value(newKey, config[FRU][key], FRU)

@@ -1,17 +1,24 @@
 {
     "Project": {
         "Name": "abbreviation",
-        "BoardName": {
+        "BoardNames": {
             "Mother Board": ["MB"],
             "Fanboard":     ["FP", "Sencond Project"]
         },
         "Stage": "PO,EVT,DVT,PVT,MP"
     },
     "ReleaseNote": {
-        "CopyMethod": "[fruid-util|dd]"
+        "CopyMethod": "dd",
+        "CopyMethod-fruid-util": "fruid-util xxx --write fru.bin",
+        "CopyMethod-dd": "dd if=/tmp/fru.bin of=/sys/class/i2c-dev/i2c-xx/device/xx-00xx/eeprom",
+        "CopyMethod-dd-table": {
+            "MB": ["15", "56"],
+            "FP": [ "9", "1f"]
+        }
     },
     "Excel": {
         "FolderRow": 0,
-        "FRURow":    2
+        "SubFolderRow": null,
+        "FRURow": 2
     }
 }
