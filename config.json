@@ -1,0 +1,17 @@
+{
+    "Project": {
+        "Name": "abbreviation",
+        "BoardName": {
+            "Mother Board": ["MB"],
+            "Fanboard":     ["FP", "Sencond Project"]
+        },
+        "Stage": "PO,EVT,DVT,PVT,MP"
+    },
+    "ReleaseNote": {
+        "CopyMethod": "[fruid-util|dd]"
+    },
+    "Excel": {
+        "FolderRow": 0,
+        "FRURow":    2
+    }
+}

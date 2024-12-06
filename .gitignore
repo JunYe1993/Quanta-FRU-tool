@@ -3,3 +3,4 @@ __pycache__*/
 ICT/**/
 *.zip
 *.json
+!config.json
