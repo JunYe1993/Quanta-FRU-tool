@@ -26,7 +26,8 @@ def clear_ict_folder():
 def clear_json():
     # remove json file
     for raw in glob.glob("*.json"):
-        os.remove(raw)
+        if os.path.basename(raw) != "config.json":
+            os.remove(raw)
 
 if __name__ == "__main__":
     clear_folder()
