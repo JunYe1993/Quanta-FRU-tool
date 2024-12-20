@@ -32,12 +32,9 @@ The configuration file is `config.json`, which contains the following settings:
 
 ### Create FRU
 To generate a FRU:
-1. Run the following command with the target Excel file:
+  Run the following command with the target Excel file:
    ```bash
    python3 excel.py [target.xlsx]
-   ```
-2. Execute the tool:
-   ```bash
    python3 tool.py
    ```
    The resulting zip file will be named:
@@ -47,7 +44,7 @@ To generate a FRU:
 
 ### Create FRU ICT
 To generate an ICT FRU (requires running "Create FRU" first):
-1. Run the following command:
+  Run the following command:
    ```bash
    python3 toolconfig.py | xargs python3 ict_tool.py
    ```
@@ -58,7 +55,7 @@ To generate an ICT FRU (requires running "Create FRU" first):
 
 ### Clean
 To remove all data except for zip files:
-1. Run the clean script:
+  Run the clean script:
    ```bash
    python3 clear.py
    ```
