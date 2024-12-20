@@ -69,9 +69,11 @@ def get_folder():
         if not os.path.isdir(raw):
             continue
         pattern = r'_(.+)_FRU_v[0-9]+$'
-        x = re.search(pattern, raw.replace(PROJECT_NAME, ''))
-        if x != None:
-            folders[x.group(1)] = raw
+        match = re.search(pattern, raw)
+        if match != None:
+            board = match.group(1).split("_")[-1]
+            folders[board] = raw
+
     return folders
 
 def get_txt_files(folder, mode=None):
@@ -370,6 +372,7 @@ def get_zip():
                 -x .git* \
                 -x ICT* \
                 -x history* \
+                -x readme* \
                 " %  filename
     process = subprocess.Popen(zipcommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()

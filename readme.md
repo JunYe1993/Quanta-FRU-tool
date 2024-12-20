@@ -1,92 +1,65 @@
-- Intro
+# FRU Generator
 
-    FRU generator
+## Introduction
 
-- Reqirement
+This project provides a tool for generating FRU files, with options for configuration and cleaning. It is designed for use in Python 3 environments and relies on specific modules for functionality.
 
-    1. python3
-    2. python3 module: xlrd v1.2.0
+## Requirements
 
-- Config
+1. Python 3
+2. Python module: `xlrd` (version 1.2.0)
 
-    Basically, what needs to be done is to fork from the master branch and then add the config commit from target project.
+## Configuration
 
-    example commit : grandteton 1.5
-    ```
-    diff --git a/excel.py b/excel.py
-    index 7e0e182..1176f91 100644
-    --- a/excel.py
-    +++ b/excel.py
-    @@ -54,6 +54,14 @@ ignore_columns = [
-     folder_name_index = 0
-     folder_proj_name_index = 1
-     folder_name_table = {
-    +    "BMC Storage Module"                               : ["BSM",    PROJECT_NAME],
-    +    "Grand Teton MB (HSC on board or module)"          : ["MB",     PROJECT_NAME],
-    +    "Grand Teton Expander BD (HSC on board or module)" : ["SWB",    PROJECT_NAME],
-    +    "Grand Teton SCM"                                  : ["SCM",    PROJECT_NAME],
-    +    "Grand Teton Front IO Board"                       : ["FIO",    PROJECT_NAME],
-    +    "Grand Teton Vertical PDB"                         : ["VPDB",   PROJECT_NAME],
-    +    "Grand Teton HGX PDB"                              : ["HPDB",   PROJECT_NAME],
-    +    "Grand Teton FAN Board"                            : ["FAN_BP", PROJECT_NAME],
-     }
+The configuration file is `config.json`, which contains the following settings:
 
-     excel_offset = 3
-    @@ -160,7 +168,7 @@ def output_json(worksheet):
-         target_folder = {}
-         for i in range(1, worksheet.ncols):
+- **Project**
+  - **Name**: Affects the final compressed file name and folder prefix.
+  - **BoardNames**: Determines the folder names.
+  - **Stage**: Affects the final compressed file name.
 
-    -        folder_row = 1
-    +        folder_row = 0
-             # remove full-width space
-             folder = worksheet.cell_value(folder_row, i).strip().replace(u'\xa0', u' ')
-             # remove typesetting space, tab, and newline characters
-    @@ -178,7 +186,7 @@ def output_json(worksheet):
-             if NO_SUB_FOLDER_ROW:
-                 folder_data[SUB_FOLDER_KEY] = ""
+- **ReleaseNote**
+  - **CopyMethod**: Determines the release note (not critical).
 
-    -        for j in range(folder_row+2, worksheet.nrows):
-    +        for j in range(folder_row+1, worksheet.nrows):
-                 value = worksheet.cell_value(j, i).strip().replace(u'\xa0', u' ')
-                 value = value_check(value)
+- **Excel**
+  - **FolderRow**: Specifies the row in the Excel file for `BoardNames` (0-based index).
+  - **FRURow**: Specifies the row in the Excel file where data starts (0-based index).
 
-    diff --git a/toolconfig.py b/toolconfig.py
-    index c7d0977..bce808e 100644
-    --- a/toolconfig.py
-    +++ b/toolconfig.py
-    @@ -2,7 +2,7 @@
-     import json, re
+- **Example**
+    ![Example](readme.png)
 
-     # excel spec
-    -NO_SUB_FOLDER_ROW = False
-    +NO_SUB_FOLDER_ROW = True
-     SUB_FOLDER_KEY  = "Sub Folder Name" # TODO : need to rework if some project put in
-     MERGE_KEY_LIST = [
-         SUB_FOLDER_KEY,
-    @@ -11,9 +11,9 @@ MERGE_KEY_LIST = [
-     ]
+## Usage
 
-     # config
-    -PROJECT_BASE = "" # "Meta-OpenBmc", "LF-OpenBmc"
-    -PROJECT_NAME = ""
-    -DEVELOP_STAGE = ""
-    +PROJECT_BASE = "Meta-OpenBmc" # "Meta-OpenBmc", "LF-OpenBmc"
-    +PROJECT_NAME = "GT1.5"
-    +DEVELOP_STAGE = "EVT"
+### Create FRU
+To generate a FRU:
+1. Run the following command with the target Excel file:
+   ```bash
+   python3 excel.py [target.xlsx]
+   ```
+2. Execute the tool:
+   ```bash
+   python3 tool.py
+   ```
+   The resulting zip file will be named:
+   ```
+   projectname_stage_currentdate.zip
+   ```
 
-     # define
-     def get_fru_key(key):
-    ```
+### Create FRU ICT
+To generate an ICT FRU (requires running "Create FRU" first):
+1. Run the following command:
+   ```bash
+   python3 toolconfig.py | xargs python3 ict_tool.py
+   ```
+   The resulting zip file will be saved as:
+   ```
+   ICT/projectname_stage_ICT_currentdate.zip
+   ```
 
-- Usage (example is linux based)
+### Clean
+To remove all data except for zip files:
+1. Run the clean script:
+   ```bash
+   python3 clear.py
+   ```
 
-    FRU:
-    1. python3 excel.py \[target.xlsx\]
-    2. python3 tool.py
-
-    result zip file will be "projectname_stage_currentdate.zip"
-
-    ICT:
-    1. python3 toolconfig.py | xargs python3 ict_tool.py
-
-    result zip file will be "ICT/projectname_stage_ICT_currentdate.zip"

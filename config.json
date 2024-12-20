@@ -1,11 +1,11 @@
 {
     "Project": {
-        "Name": "abbreviation",
+        "Name": "Sample_Project",
         "BoardNames": {
             "Mother Board": ["MB"],
-            "Fanboard":     ["FP", "Sencond Project"]
+            "Fanboard":     ["FP", "Project_Name2"]
         },
-        "Stage": "PO,EVT,DVT,PVT,MP"
+        "Stage": "EVT"
     },
     "ReleaseNote": {
         "CopyMethod": "dd",
