@@ -76,10 +76,12 @@ def get_worksheet(workbook):
         exit()
     elif len(sheetnames) == 1:
         print("There is only one sheet in the excel file.")
+        print("Target sheet name is %s" % sheetnames[0])
         return workbook.sheet_by_index(0)
     else:
         for sheetname in sheetnames:
             if sheetname.find("FRU") != -1:
+                print("Target sheet name is %s" % sheetname)
                 return workbook.sheet_by_name(sheetname)
             
     print("There is no sheet named FRU in the excel file.")
