@@ -35,12 +35,11 @@ To generate a FRU:
   Run the following command with the target Excel file:
    ```bash
    python3 excel.py [target.xlsx]
+   ```
+   ```bash
    python3 tool.py
    ```
-   The resulting zip file will be named:
-   ```
-   projectname_stage_currentdate.zip
-   ```
+   The resulting zip file will be named: **projectname_stage_currentdate.zip**
 
 ### Create FRU ICT
 To generate an ICT FRU (requires running "Create FRU" first):
@@ -48,10 +47,7 @@ To generate an ICT FRU (requires running "Create FRU" first):
    ```bash
    python3 toolconfig.py | xargs python3 ict_tool.py
    ```
-   The resulting zip file will be saved as:
-   ```
-   ICT/projectname_stage_ICT_currentdate.zip
-   ```
+   The resulting zip file will be saved as: **ICT/projectname_stage_ICT_currentdate.zip**
 
 ### Clean
 To remove all data except for zip files:

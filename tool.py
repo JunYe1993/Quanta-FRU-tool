@@ -65,13 +65,18 @@ def folder(config):
 
 def get_folder():
     folders = {}
+    folderConfig = config_reader.read("excel_raw_folder.json")
+    projectNames = {folderConfig[name]["Project Name"] for name in folderConfig}
     for raw in glob.glob("*"):
         if not os.path.isdir(raw):
             continue
         pattern = r'_(.+)_FRU_v[0-9]+$'
-        match = re.search(pattern, raw)
+        tempraw = raw
+        for projectName in projectNames:
+            tempraw = tempraw.replace(projectName, "")
+        match = re.search(pattern, tempraw)
         if match != None:
-            board = match.group(1).split("_")[-1]
+            board = match.group(1)
             folders[board] = raw
 
     return folders

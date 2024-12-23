@@ -150,6 +150,7 @@ def output_json(worksheet):
         folder = re.sub(r'\s+', ' ', folder)
 
         if folder not in folder_name_table:
+            print("%s is not in the config.json" % folder)
             print("Please update the folder name in the config.json")
             print("Or check Excel section in config.json")
             exit()
