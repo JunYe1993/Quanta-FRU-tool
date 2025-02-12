@@ -2,8 +2,6 @@
 import sys, re
 import xlrd
 import json
-from toolconfig import MERGE_KEY_LIST
-from toolconfig import SUB_FOLDER_KEY
 from toolconfig import read_config_json
 from toolconfig import parentheses_off
 config = read_config_json()
@@ -14,8 +12,7 @@ row_json_table = [
     "Chassis Type",
     "Chassis Part Number",
     "Chassis Serial Number",
-    "Chassis Custom Data 1",
-    "Chassis Custom Data 2",
+    # "Chassis Custom Data X",
     "Board Info Area",
     "Board Language Code",
     "Board Mfg Date",
@@ -24,10 +21,7 @@ row_json_table = [
     "Board Serial",
     "Board Part Number",
     "Board FRU ID",
-    "Board Custom Data 1",
-    "Board Custom Data 2",
-    "Board Custom Data 3",
-    "Board Custom Data 4",
+    # "Board Custom Data X",
     "Product Info Area",
     "Product Language Code",
     "Product Manufacturer",
@@ -37,9 +31,7 @@ row_json_table = [
     "Product Serial",
     "Product Asset Tag",
     "Product FRU ID",
-    "Product Custom Data 1",
-    "Product Custom Data 2",
-    "Product Custom Data 3",
+    # "Product Custom Data X",
     "",
     "PCBA QPN", # Just for dickhead.
 ]
@@ -56,6 +48,7 @@ folder_name_index = 0
 folder_proj_name_index = 1
 folder_name_table = config['Project']['BoardNames']
 excel_offset = config['Excel']['FRURow']
+data_follow_bpn_list = ['Board Part Number']
 
 def check_argv():
 
@@ -100,11 +93,15 @@ def check_row_name(worksheet):
         area = "Product " if data == "Product Info Area" else area
         if data == "Language Code":
             data = area + data
+
         if data == "":
             break
 
         if data in row_json_table:
             updated_json_table.append(data)
+        elif data.find("Custom Data") != -1:
+            updated_json_table.append(data)
+            data_follow_bpn_list.append(data)
         else:
             print("Needs to update JSON table")
             exit()
@@ -161,29 +158,27 @@ def output_json(worksheet):
             folder_name_table[folder].append(config['Project']['Name'])
 
         folder_name = folder_name_table[folder][folder_name_index]
-        target_folder[folder_name] = {}
-        target_folder[folder_name]["Chassis Info"] = True
-        target_folder[folder_name]["Project Name"] = folder_name_table[folder][folder_proj_name_index]
+        #target_folder[folder_name] = {}
+        #target_folder[folder_name]["Chassis Info"] = True
+        #target_folder[folder_name]["Project Name"] = folder_name_table[folder][folder_proj_name_index]
 
         folder_data = {}
-        if config['Excel']['SubFolderRow'] == None:
-            folder_data[SUB_FOLDER_KEY] = ""
-        else:
-            folder_data[SUB_FOLDER_KEY] = worksheet.cell_value(config['Excel']['SubFolderRow'], i).strip().replace(u'\xa0', u' ')
-
+        folder_data["Project"] = {}
+        folder_data["Project"]["Name"] = folder_name_table[folder][folder_proj_name_index]
+        folder_data["Project"]["ChassisArea"] = True
         for j in range(config['Excel']['FRURow'], worksheet.nrows):
             value = worksheet.cell_value(j, i).strip().replace(u'\xa0', u' ')
             value = value_check(value)
 
             # decide what prototype should be used.
             if value == "no chassis information":
-                target_folder[folder_name]["Chassis Info"] = False
+                folder_data["Project"]["ChassisArea"] = False
                 value = ""
             # there is one dickhead just dont like to fill "no chassis information"
             # judge by no input in Chassis Type
             elif worksheet.cell_value(j, 0).strip().replace(u'\xa0', u' ') == "Chassis Type" \
                 and value == "":
-                target_folder[folder_name]["Chassis Info"] = False
+                folder_data["Project"]["ChassisArea"] = False
 
             # there may some conments are under the chart, should be ignored
             if (j-excel_offset != len(updated_json_table)):
@@ -194,20 +189,20 @@ def output_json(worksheet):
                 break
 
         # there might be more than one row which has the same board name.
-        # it meant to be merge, so the data should be the same except "Board Part Number"
+        # it meant to be merge, so the data should be the same except BPN and Customer Data
         if folder_name in output:
-            for key in MERGE_KEY_LIST:
+            for key in data_follow_bpn_list:
                 output[folder_name][key].append(folder_data[key])
         else:
             output[folder_name] = folder_data
             # merge list for same folder name (ex. MB)
-            for key in MERGE_KEY_LIST:
+            for key in data_follow_bpn_list:
                 output[folder_name][key] = [output[folder_name][key]]
 
     with open ("excel_raw_output.json", 'w', encoding='utf-8') as json_file:
         json.dump(output, json_file, ensure_ascii=False, indent=4)
-    with open ("excel_raw_folder.json", 'w', encoding='utf-8') as json_file:
-        json.dump(target_folder, json_file, ensure_ascii=False, indent=4)
+    #with open ("excel_raw_folder.json", 'w', encoding='utf-8') as json_file:
+    #    json.dump(target_folder, json_file, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
 

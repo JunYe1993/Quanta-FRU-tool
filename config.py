@@ -1,112 +1,74 @@
-import re, json
+import re, json, copy
 from toolconfig import parentheses_off
-from toolconfig import get_fru_key
-from toolconfig import SUB_FOLDER_KEY
-from toolconfig import FRU_PART_NUMBER_KEY
-from toolconfig import FRU_VERSION_KEY
-from toolconfig import FRU_FBPN_KEY
-from toolconfig import MERGE_FRU_KEY_LIST
+from toolconfig import get_fru_keysturct
 
-ini_key_m1_table = {
-    "mode":"M1",
-    "enable":True,
-    "Read EEPROM fru data(Y/N)"         : "N",
-    "Write FRU Bin file to EEPROM(Y/N)" : "N",
-    "Write FRU Txt file to EEPROM(Y/N)" : "Y",
-    "FRU 2 Use(Y/N)"                    : "N",
-    "FRU 3 Use(Y/N)"                    : "N",
-    "Internal Use Data(Y/N)"            : "N",
-    "Chassis Part Number(Y/N)"          : "N",
-    "Chassis Serial Number(Y/N)"        : "N",
-    "Chassis Custom Field 1(Y/N)"       : "N",
-    "Chassis Custom Field 2(Y/N)"       : "N",
-    "M/B Manufacturer Name(Y/N)"        : "N",
-    "M/B Product Name(Y/N)"             : "N",
-    "M/B Serial Number(Y/N)"            : "Y",
-    FRU_PART_NUMBER_KEY+"(Y/N)"         : "N",
-    FRU_VERSION_KEY+"(Y/N)"             : "N",
-    FRU_FBPN_KEY+"(Y/N)"                : "N",
-    "M/B Custom Field 2(Y/N)"           : "Y",
-    "M/B Custom Field 3(Y/N)"           : "Y",
-    "M/B Custom Field 4(Y/N)"           : "N",
-    "PD Manufacturer Name(Y/N)"         : "N",
-    "PD Product Name(Y/N)"              : "N",
-    "PD Part/Model Number(Y/N)"         : "N",
-    "PD Version(Y/N)"                   : "N",
-    "PD Serial Number(Y/N)"             : "N",
-    "PD Asset Tag(Y/N)"                 : "N",
-    "PD Fru File ID(Y/N)"               : "N",
-    "PD Custom Field 1(Y/N)"            : "N",
-    "PD Custom Field 2(Y/N)"            : "N",
-    "PD Custom Field 3(Y/N)"            : "N",
+fruConfig = {}
+stageConfig = {}
+
+default_stage_config_structure = {
+    "Stages": ["M1", "M3", "M5"],
+    "Chassis" : {
+        "Type"          : None,
+        "Part Number"   : None,
+        "Serial Number" : None, # from harma
+        "Custom Data"   : [],
+    },
+    "Board" : {
+        "Language Code"          : None,
+        "Manufacturer Date/Time" : None,
+        "Manufacturer"           : None,
+        "Product"                : None,
+        "Serial Number"          : "[M1 defined]",
+        "Part Number"            : None,
+        "Fru ID"                 : None,
+        "Custom Data"            : [None, "[M1 defined]", "[M1 defined]"],
+    },
+    "Product" : {
+        "Language Code"     : None,
+        "Manufacturer"      : None,
+        "Name"              : None,
+        "Part/Model Number" : "[M3 defined]",
+        "Version"           : "[M3 defined]",
+        "Serial Number"     : "[M3 defined]",
+        "Asset Tag"         : "[M3 defined]",
+        "Fru ID"            : "[M3 defined]",
+        "Custom Data"       : ["[M3 defined]", "[M3 defined]", "[M3 defined]"],
+    },
 }
 
-ini_key_m3_table = {
-    "mode":"M3",
-    "enable":True,
-    "Read EEPROM fru data(Y/N)"         : "N",
-    "Write FRU Bin file to EEPROM(Y/N)" : "Y",
-    "Write FRU Txt file to EEPROM(Y/N)" : "Y",
-    "FRU 2 Use(Y/N)"                    : "N",
-    "FRU 3 Use(Y/N)"                    : "N",
-    "Internal Use Data(Y/N)"            : "N",
-    "Chassis Part Number(Y/N)"          : "N",
-    "Chassis Serial Number(Y/N)"        : "Y",
-    "Chassis Custom Field 1(Y/N)"       : "N",
-    "Chassis Custom Field 2(Y/N)"       : "N",
-    "M/B Manufacturer Name(Y/N)"        : "N",
-    "M/B Product Name(Y/N)"             : "N",
-    "M/B Serial Number(Y/N)"            : "N",
-    FRU_PART_NUMBER_KEY+"(Y/N)"         : "N",
-    FRU_VERSION_KEY+"(Y/N)"             : "N",
-    FRU_FBPN_KEY+"(Y/N)"                : "N",
-    "M/B Custom Field 2(Y/N)"           : "N",
-    "M/B Custom Field 3(Y/N)"           : "N",
-    "M/B Custom Field 4(Y/N)"           : "N",
-    "PD Manufacturer Name(Y/N)"         : "N",
-    "PD Product Name(Y/N)"              : "N",
-    "PD Part/Model Number(Y/N)"         : "Y",
-    "PD Version(Y/N)"                   : "Y",
-    "PD Serial Number(Y/N)"             : "Y",
-    "PD Asset Tag(Y/N)"                 : "Y",
-    "PD Fru File ID(Y/N)"               : "Y",
-    "PD Custom Field 1(Y/N)"            : "Y",
-    "PD Custom Field 2(Y/N)"            : "Y",
-    "PD Custom Field 3(Y/N)"            : "Y",
-}
-
-ini_key_m5_table = {
-    "mode":"M5",
-    "enable":False,
-    "Read EEPROM fru data(Y/N)"         : "N",
-    "Write FRU Bin file to EEPROM(Y/N)" : "Y",
-    "Write FRU Txt file to EEPROM(Y/N)" : "Y",
-    "FRU 2 Use(Y/N)"                    : "N",
-    "FRU 3 Use(Y/N)"                    : "N",
-    "Internal Use Data(Y/N)"            : "N",
-    "Chassis Part Number(Y/N)"          : "N",
-    "Chassis Serial Number(Y/N)"        : "N",
-    "Chassis Custom Field 1(Y/N)"       : "N",
-    "Chassis Custom Field 2(Y/N)"       : "N",
-    "M/B Manufacturer Name(Y/N)"        : "N",
-    "M/B Product Name(Y/N)"             : "N",
-    "M/B Serial Number(Y/N)"            : "N",
-    FRU_PART_NUMBER_KEY+"(Y/N)"         : "N",
-    FRU_VERSION_KEY+"(Y/N)"             : "N",
-    FRU_FBPN_KEY+"(Y/N)"                : "N",
-    "M/B Custom Field 2(Y/N)"           : "N",
-    "M/B Custom Field 3(Y/N)"           : "N",
-    "M/B Custom Field 4(Y/N)"           : "N",
-    "PD Manufacturer Name(Y/N)"         : "N",
-    "PD Product Name(Y/N)"              : "N",
-    "PD Part/Model Number(Y/N)"         : "N",
-    "PD Version(Y/N)"                   : "N",
-    "PD Serial Number(Y/N)"             : "N",
-    "PD Asset Tag(Y/N)"                 : "N",
-    "PD Fru File ID(Y/N)"               : "N",
-    "PD Custom Field 1(Y/N)"            : "N",
-    "PD Custom Field 2(Y/N)"            : "N",
-    "PD Custom Field 3(Y/N)"            : "N",
+default_config_structure = {
+    "Project": {
+        "Name": "",
+        "ChassisArea": True
+    },
+    "Stages": ["M1", "M3"],
+    "Chassis" : {
+        "Type"          : "",
+        "Part Number"   : "",
+        "Serial Number" : "",
+        "Custom Data"   : [],
+    },
+    "Board" : {
+        "Language Code"          : "",
+        "Manufacturer Date/Time" : "",
+        "Manufacturer"           : "",
+        "Product"                : "",
+        "Serial Number"          : "",
+        "Part Number"            : "",
+        "Fru ID"                 : "",
+        "Custom Data"            : [],
+    },
+    "Product" : {
+        "Language Code"     : "",
+        "Manufacturer"      : "",
+        "Name"              : "",
+        "Part/Model Number" : "",
+        "Version"           : "",
+        "Serial Number"     : "",
+        "Asset Tag"         : "",
+        "Fru ID"            : "",
+        "Custom Data"       : [],
+    },
 }
 
 ipmi_chassis_type = {
@@ -143,180 +105,118 @@ tags = {
     "[not defined]",
 }
 
-FBPN_NUMBER_LIST = {}
+def get_tags(value):
+    
+    data = value.strip()
+    data = data.replace('\n', ' ')
+    data = data.replace('_', ' ')
+    data = data.replace('-', ' ')
+    data = data.replace('ODM PROGRAM', 'ODM DEFINE')
+    for model in default_stage_config_structure["Stages"]:
+        if data.find(f"{model} ODM DEFINE") != -1:
+            return f"[{model} defined]"
+    
+    # old fashion way to fill in M3
+    if data == "CPU serial":
+        return "[M3 defined]"
+    
+    return None
 
-def get_value(key, value, FRU):
+def update_fru_stage(config, value):
+    if value == "[M5 defined]" and "M5" not in config["Stages"]:
+        config["Stages"].append("M5")
+
+def get_value(FRU, area, fruKey, value, BPN_NUMBERS):
+
+    if fruKey == "Language Code":
+        # Remove "(english)"
+        return parentheses_off(value)
+
     # base on new key (key_change_table's value)
     # there some exception need to change value
-    if key == "Chassis Type":
-        value = parentheses_off(value).upper()
-        return ipmi_chassis_type[value]
+    elif area == "Chassis":
+        if fruKey == "Type":
+            value = parentheses_off(value).upper()
+            return ipmi_chassis_type[value]
 
-    # old fashion way to fill in M3
-    elif key.find("Chassis Custom Field") != -1 and \
-            value.find("CPU serial") != -1:
-        # normally this value equal to "CPU serial"
-        # when need to be filled on M3 status
-        return "[M3 defined]" if value != "" else ""
+    elif area == "Board":
+        if fruKey == "Part Number":
+            ret = []
+            for item in value:
+                arr = item.splitlines()
+                for i in range(0, len(arr)):
+                    pattern = r'([0-9A-Z]{11})'
+                    x = re.search(pattern, arr[i])
+                    if x != None:
+                        ret.append(x.group(1))
+                    elif parentheses_off(arr[i]) == "TBD":
+                        ret.append("TBD")
+            return ret
+        elif fruKey == "FRU ID":
+            # Remove "(english)"
+            return parentheses_off(value)
+        
+    elif area == "Product":
+        if fruKey == "Language Code":
+            # Remove "(english)"
+            return parentheses_off(value)
 
-    elif key == "M/B Language Code":
-        # Remove "(english)"
-        return parentheses_off(value)
-
-    elif key == "PD Language Code":
-        # Remove "(english)"
-        return parentheses_off(value)
-
-    elif key == SUB_FOLDER_KEY:
-        # Board Part Number: is a string list && split by \n
-        ret = []
-        for item in value:
-            arr = item.splitlines()
-            for i in range(0, len(arr)):
-                pattern = r'([0-9A-Z]{11})'
-                x = re.search(pattern, arr[i])
-                if x != None:
-                    ret.append(x.group(1))
-                elif parentheses_off(arr[i]) == "TBD":
-                    ret.append("TBD")
-
-        return ret
-
-    elif key == FRU_PART_NUMBER_KEY:
-        # Board Part Number: is a string list && split by \n
-        FBPN_NUMBER_LIST[FRU] = []
-        ret = []
-        for item in value:
-            arr = item.splitlines()
-            for i in range(0, len(arr)):
-                pattern = r'([0-9A-Z]{11})'
-                x = re.search(pattern, arr[i])
-                if x != None:
-                    ret.append(x.group(1))
-                elif parentheses_off(arr[i]) == "TBD":
-                    ret.append("TBD")
-
-            # for board merge consequence
-            # others should base on FRU PART NUMBER
-            FBPN_NUMBER_LIST[FRU].append(len(arr))
-
-        return ret
-
-    elif key == FRU_VERSION_KEY:
-        # Remove "(english)"
-        return parentheses_off(value)
-
-    elif key in MERGE_FRU_KEY_LIST:
-        # for board merge
-        if len(FBPN_NUMBER_LIST[FRU]) != len(value):
-            print("excel proccess went wrong, FBPN_NUMBER_LIST length not matching")
+    # for customer data cases
+    if type(value) == list:
+        if len(BPN_NUMBERS) != len(value):
+            print("BPN numbers and raw customer data is not matched")
             exit()
-
         ret = []
-        for i in range(0, len(FBPN_NUMBER_LIST[FRU])):
-            for j in range(0, FBPN_NUMBER_LIST[FRU][i]):
-                ret.append(value[i])
+        customerDataIndex = len(fruConfig[FRU][area][fruKey])
+        defaultag = stageConfig[FRU][area][fruKey][customerDataIndex] \
+            if len(stageConfig[FRU][area][fruKey]) > customerDataIndex else None
+        for index, subvalue in enumerate(value):
+            subtag = get_tags(subvalue)
+            subtag = subtag if subtag != None else defaultag
+            subvalue = subtag if subtag != None else subvalue
+            update_fru_stage(fruConfig[FRU], subvalue)
+            for i in range(0, BPN_NUMBERS[index]):
+                ret.append(subvalue)
         return ret
-
     else:
-        # check if value need to be filled in specific mode
-        ODMstr = value.strip()
-        ODMstr = ODMstr.replace('_', ' ')
-        ODMstr = ODMstr.replace('-', ' ')
+        defaultag = stageConfig[FRU][area][fruKey]
+        subtag = get_tags(value)
+        subtag = subtag if subtag != None else defaultag
+        rvalue = subtag if subtag != None else value
+        update_fru_stage(fruConfig[FRU], rvalue)
+        return rvalue
 
-        if ODMstr.find("M1 ODM PROGRAM") != -1 or \
-            ODMstr.find("M1 ODM DEFINE") != -1:
-            return "[M1 defined]"
-        elif ODMstr.find("M3 ODM PROGRAM") != -1 or \
-            ODMstr.find("M3 ODM DEFINE") != -1:
-            return "[M3 defined]"
-        elif ODMstr.find("M5 ODM PROGRAM") != -1 or \
-            ODMstr.find("M5 ODM DEFINE") != -1:
-            return "[M5 defined]"
+def get_fru_config(excelConfig):
+    global fruConfig, stageConfig
+    for FRU, data in excelConfig.items():
 
-        # check if key originally in specific mode
-        ini_key = key + "(Y/N)"
-        if ini_key_m1_table.get(ini_key) != None:
-            if ini_key_m1_table[ini_key] == "Y" or \
-                ini_key_m3_table[ini_key] == "Y" or \
-                ini_key_m5_table[ini_key] == "Y":
-                if value not in tags:
-                    value = ""
-        return value
+        BPN_NUMBERS = []
+        for excel_boards in data["Board Part Number"]:
+            BPN_NUMBERS.append(len(excel_boards.splitlines()))
 
-def key_change(config):
-    newConfig = {}
-    for FRU in config:
-        newConfig[FRU] = {}
-        keys = [FRU_PART_NUMBER_KEY] + [key for key in config[FRU].keys() if key != FRU_PART_NUMBER_KEY]
-        for key in keys:
-            if get_fru_key(key) and key != "":
-                newKey = get_fru_key(key)
-                newConfig[FRU][newKey] = get_value(newKey, config[FRU][key], FRU)
-        # for some PM or early stage that may not have SUB_FOLDER_KEY filled
-        if len(newConfig[FRU][SUB_FOLDER_KEY]) == 0:
-            newConfig[FRU][SUB_FOLDER_KEY] = newConfig[FRU][FRU_PART_NUMBER_KEY]
+        fruConfig[FRU] = copy.deepcopy(default_config_structure)
+        stageConfig[FRU] = copy.deepcopy(default_stage_config_structure)
+        fruConfig[FRU]["Project"] = data["Project"].copy()
+        for key, value in data.items():
+            keySturct = get_fru_keysturct(key)
+            if keySturct != None:
+                area, fruKey = keySturct
+                if type(fruConfig[FRU][area][fruKey]) == list:
+                    fruConfig[FRU][area][fruKey].append(
+                        get_value(FRU, area, fruKey, value, BPN_NUMBERS))
+                else:
+                    fruConfig[FRU][area].update(
+                        {fruKey: get_value(FRU, area, fruKey, value, BPN_NUMBERS)})
+        
+    return fruConfig
 
-    return newConfig
-
-def get_ini_config(config):
-
-    m1_config = {}
-    m3_config = {}
-    m5_config = {}
-
-    for FRU in config:
-        m1_table = ini_key_m1_table.copy()
-        m3_table = ini_key_m3_table.copy()
-        m5_table = ini_key_m5_table.copy()
-
-        for key in config[FRU]:
-            tablekey = key + "(Y/N)"
-            # if ini don't have this key, skip
-            if m1_table.get(tablekey) == None:
-                continue
-
-            if config[FRU][key] == "[not defined]":
-                m1_table[tablekey] = "N"
-                m3_table[tablekey] = "N"
-                m5_table[tablekey] = "N"
-            if config[FRU][key] == "[M1 defined]":
-                m1_table[tablekey] = "Y"
-                m3_table[tablekey] = "N"
-                m5_table[tablekey] = "N"
-            elif config[FRU][key] == "[M3 defined]":
-                m1_table[tablekey] = "N"
-                m3_table[tablekey] = "Y"
-                m5_table[tablekey] = "N"
-            elif config[FRU][key] == "[M5 defined]":
-                m1_table[tablekey] = "N"
-                m3_table[tablekey] = "N"
-                m5_table[tablekey] = "Y"
-                # if format is M5 defined, then enable M5
-                m5_table["enable"] = True
-
-        m1_config[FRU] = m1_table
-        m3_config[FRU] = m3_table
-        m5_config[FRU] = m5_table
-
-    return m1_config, m3_config, m5_config
-
-def read_config(filename):
-    with open ("excel_raw_output.json", 'r', encoding='utf-8') as f:
+def read_config(file="excel_raw_output.json"):
+    with open (file, 'r', encoding='utf-8') as f:
         # create main config
-        data_config = json.load(f)
-        data_config = key_change(data_config)
-
-        # create ini config
-        ini_m1_config, ini_m3_config, ini_m5_config = get_ini_config(data_config)
-
-        # merge config
-        config = {}
-        config["mainData"] = data_config
-        config["m1_ini"] = ini_m1_config
-        config["m3_ini"] = ini_m3_config
-        config["m5_ini"] = ini_m5_config
-        return config
+        rawConfig = json.load(f)
+        fruConfig = get_fru_config(rawConfig)
+        
+        return fruConfig
 
 def dump(config, name="dump.json"):
     with open (name, 'w', encoding='utf-8') as json_file:
@@ -327,8 +227,5 @@ def read(file):
         return json.load(f)
 
 if __name__ == "__main__":
-    config = read_config("excel_raw_output.json")
-    dump(config["mainData"], "data_dump.json")
-    dump(config["m1_ini"], "ini_m1_dump.json")
-    dump(config["m3_ini"], "ini_m3_dump.json")
-    dump(config["m5_ini"], "ini_m5_dump.json")
+    config = read_config()
+    dump(fruConfig, "fru_config.json")

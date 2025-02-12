@@ -1,0 +1,3 @@
+[submodule ".-f"]
+	path = .-f
+	url = https://github.com/cchoux/fruid-util

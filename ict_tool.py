@@ -6,7 +6,7 @@ import config as config_reader
 from toolconfig import read_config_json
 
 rootpath = "ICT/"
-tool = rootpath + "a.out"
+tool = rootpath + "a.out.v2"
 
 def get_target():
     targets = []
@@ -41,35 +41,41 @@ def clean_last():
             process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
 
-def get_bin(folder, target):
+def get_bin(folder, stage="M1"):
     binfiles = {}
-    path = folder + "/linux/FRU_Writer/M1/"
-    ini = config_reader.read_config("excel_raw_output.json")
-    ini = ini["m1_ini"][target.replace("_FRU", "")]
+    path = f"{folder}/{stage}/"
     os.chdir(path)
     for script in glob.glob("*.sh"):
         head, tail = os.path.split(script)
         root, ext  = os.path.splitext(tail)
         proc = subprocess.Popen(["./" + script, root + ".bin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        
+        inputs = []
+        for line in open(script, 'r'):
+            pattern = r"read -p \"([^:]+):"
+            x = re.search(pattern, line)
+            if x != None:
+                inputs.append(x.group(1))
 
-        for key in ini.keys():
-            if key.find("(Y/N)") != -1 and ini[key] == "Y" and \
-                key.find("Write FRU Txt file to EEPROM") == -1:
-
-                if key == "M/B Serial Number(Y/N)":
-                    proc.stdin.write('123456789012345\n'.encode())
-                elif key == "M/B Custom Field 2(Y/N)":
-                    proc.stdin.write('1234567\n'.encode())
-                elif key == "M/B Custom Field 3(Y/N)":
-                    proc.stdin.write('12345\n'.encode())
-                else:
-                    proc.stdin.write('ff:ff:ff:ff:ff:ff\n'.encode())
+        for input in inputs:
+            if input.find("Chassis Custom Data") != -1:
+                proc.stdin.write('ff:ff:ff:ff:ff:ff\n'.encode())
+                pass
+            elif input == "Board Serial Number":
+                proc.stdin.write('123456789012345\n'.encode())
+                pass
+            elif input == "Board Custom Field 2":
+                proc.stdin.write('1234567\n'.encode())
+                pass
+            elif input == "Board Custom Field 3":
+                proc.stdin.write('12345\n'.encode())
+                pass
 
         proc.stdin.close()
         proc.wait()
         binfiles[root+".bin"] = path+root+".bin"
 
-    os.chdir('../../../../')
+    os.chdir('../../')
     return binfiles
 
 def move_to_ICT(binfiles, target):
@@ -105,11 +111,12 @@ if __name__ == "__main__":
 
     targets = get_target()
     folders = get_folder()
+
     for folder in folders:
         for target in targets:
             if folder.find(target) != -1:
                 print("Processing folder: %s" % (folder))
-                binfiles = get_bin(folder, target)
+                binfiles = get_bin(folder)
                 move_to_ICT(binfiles, folder[:-5])
 
     exec_a_out()
